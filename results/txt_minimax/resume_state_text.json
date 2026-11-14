@@ -1,0 +1,24 @@
+{
+  "mode": "text",
+  "models": [
+    "minimax-code-global/MiniMax-M3.1-Flash"
+  ],
+  "methods": [
+    "versioned_state_ledger_flat"
+  ],
+  "completed_calls": 210,
+  "remaining_bundles": 0,
+  "remaining_task_ids": [],
+  "credits": {
+    "requests": 205,
+    "tokens_in": 387266,
+    "tokens_out": 247675,
+    "estimated_credits_spent": 204.45,
+    "budget_credits": 300.0,
+    "reserve_credits": 2000.0,
+    "live_balance_before": 2361.02,
+    "live_balance_now": 1987.24
+  },
+  "stopped_by_credit_guard": false,
+  "time": "2026-11-14T08:03:04.741043+00:00"
+}

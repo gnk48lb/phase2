@@ -1,0 +1,87 @@
+{
+  "text": [
+    {
+      "model": "minimax-code-global/MiniMax-M3.1-Flash",
+      "ok": true,
+      "latency_s": 2.1,
+      "text": "OK",
+      "meta": {
+        "latency_ms": 2097,
+        "input_tokens": 207,
+        "output_tokens": 3,
+        "total_tokens": 210,
+        "http_status": 200,
+        "request_retries": 0
+      }
+    },
+    {
+      "model": "workbuddy/deepseek-v4.1-flash",
+      "ok": true,
+      "latency_s": 1.78,
+      "text": "OK",
+      "meta": {
+        "latency_ms": 1780,
+        "input_tokens": 16,
+        "output_tokens": 1,
+        "total_tokens": 17,
+        "http_status": 200,
+        "request_retries": 0
+      }
+    },
+    {
+      "model": "autoclaw-cn/zai_glm-5.3-flash",
+      "ok": true,
+      "latency_s": 1.46,
+      "text": "OK",
+      "meta": {
+        "latency_ms": 1457,
+        "input_tokens": 39,
+        "output_tokens": 20,
+        "total_tokens": 59,
+        "http_status": 200,
+        "request_retries": 0
+      }
+    },
+    {
+      "model": "trae-cn/qwen3.8-max-max",
+      "ok": true,
+      "latency_s": 2.13,
+      "text": "OK",
+      "meta": {
+        "latency_ms": 2135,
+        "input_tokens": 64,
+        "output_tokens": 25,
+        "total_tokens": 89,
+        "http_status": 200,
+        "request_retries": 0
+      }
+    },
+    {
+      "model": "loomy/qwen-3.8-max",
+      "ok": true,
+      "latency_s": 1.73,
+      "text": "OK",
+      "meta": {
+        "latency_ms": 1729,
+        "input_tokens": 33,
+        "output_tokens": 40,
+        "total_tokens": 73,
+        "http_status": 200,
+        "request_retries": 0
+      }
+    }
+  ],
+  "image": [
+    {
+      "model": "minimax-code-global/MiniMax-M3.1-Flash",
+      "ok": false,
+      "latency_s": 20.25,
+      "error": "RuntimeError: Magpie multimodal request failed after 2 attempts: ValueError: response contains no text content"
+    }
+  ],
+  "text_latency_summary": {
+    "n": 5,
+    "median_s": 1.78,
+    "max_s": 2.13
+  }
+}

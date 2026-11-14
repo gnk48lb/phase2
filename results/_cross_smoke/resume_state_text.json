@@ -1,0 +1,28 @@
+{
+  "mode": "text",
+  "models": [
+    "workbuddy/deepseek-v4.1-flash",
+    "autoclaw-cn/zai_glm-5.3-flash",
+    "loomy/qwen-3.8-max"
+  ],
+  "methods": [
+    "direct_baseline",
+    "append_only_ledger",
+    "versioned_state_ledger"
+  ],
+  "completed_calls": 90,
+  "remaining_bundles": 0,
+  "remaining_task_ids": [],
+  "credits": {
+    "requests": 89,
+    "tokens_in": 212680,
+    "tokens_out": 67391,
+    "estimated_credits_spent": 90.18,
+    "budget_credits": 0.0,
+    "reserve_credits": 0.0,
+    "live_balance_before": 8605.12,
+    "live_balance_now": 7834.22
+  },
+  "stopped_by_credit_guard": false,
+  "time": "2026-11-14T04:24:13.719020+00:00"
+}

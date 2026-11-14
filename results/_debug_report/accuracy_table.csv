@@ -1,0 +1,13 @@
+run,model,mode,method,scope,n,correct,accuracy,exact_rate,ci_low,ci_high
+smoke_mm,minimax-code-global/MiniMax-M3.1-Flash,multimodal,append_only_ledger,overall,10,9,0.9,0.9,0.5958436145024278,0.9821242504842788
+smoke_mm,minimax-code-global/MiniMax-M3.1-Flash,multimodal,append_only_ledger,Progress Tracking,10,9,0.9,0.9,0.5958436145024278,0.9821242504842788
+smoke_mm,minimax-code-global/MiniMax-M3.1-Flash,multimodal,direct_baseline,overall,10,10,1.0,1.0,0.7224598312333834,1.0
+smoke_mm,minimax-code-global/MiniMax-M3.1-Flash,multimodal,direct_baseline,Progress Tracking,10,10,1.0,1.0,0.7224598312333834,1.0
+smoke_mm,minimax-code-global/MiniMax-M3.1-Flash,multimodal,versioned_state_ledger,overall,10,9,0.9,0.9,0.5958436145024278,0.9821242504842788
+smoke_mm,minimax-code-global/MiniMax-M3.1-Flash,multimodal,versioned_state_ledger,Progress Tracking,10,9,0.9,0.9,0.5958436145024278,0.9821242504842788
+smoke_txt,minimax-code-global/MiniMax-M3.1-Flash,text,append_only_ledger,overall,10,9,0.9,0.9,0.5958436145024278,0.9821242504842788
+smoke_txt,minimax-code-global/MiniMax-M3.1-Flash,text,append_only_ledger,Progress Tracking,10,9,0.9,0.9,0.5958436145024278,0.9821242504842788
+smoke_txt,minimax-code-global/MiniMax-M3.1-Flash,text,direct_baseline,overall,10,9,0.9,0.9,0.5958436145024278,0.9821242504842788
+smoke_txt,minimax-code-global/MiniMax-M3.1-Flash,text,direct_baseline,Progress Tracking,10,9,0.9,0.9,0.5958436145024278,0.9821242504842788
+smoke_txt,minimax-code-global/MiniMax-M3.1-Flash,text,versioned_state_ledger,overall,10,6,0.6,0.6,0.3126695474501864,0.8318224187964902
+smoke_txt,minimax-code-global/MiniMax-M3.1-Flash,text,versioned_state_ledger,Progress Tracking,10,6,0.6,0.6,0.3126695474501864,0.8318224187964902

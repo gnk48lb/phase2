@@ -1,0 +1,17 @@
+{
+  "minimax_multimodal": true,
+  "latency_s": 1.48,
+  "sample": "Tortilla on wooden cutting board",
+  "meta": {
+    "latency_ms": 1475,
+    "input_tokens": 510,
+    "output_tokens": 87,
+    "total_tokens": 597,
+    "http_status": 200,
+    "request_retries": 0,
+    "finish_reason": "stop",
+    "reasoning_chars": 317
+  },
+  "image": "D:\\code\\ClaudeCode\\phase2_planbench\\Plan-Bench\\image\\260_1.jpg",
+  "probed_at": "2026-11-14T04:30:39.108964+00:00"
+}

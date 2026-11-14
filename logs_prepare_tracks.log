@@ -1,0 +1,14 @@
+Plan-Bench already present at D:\code\ClaudeCode\phase2_planbench\Plan-Bench
+210 temporal tasks; 5 subtasks; 1411 frames
+multimodal probe: True (3.47s) -> 'Tortilla on wooden cutting board'
+stage 1 (captions): 1411 unique frames, 34 to caption; MiniMax credits left: 9212.460000000001
+  captioned 34/34 (0.3/s, credits~35)
+stage 2 (tracks): 166 episodes to track; credits left: 9118.26
+  tracked 25/166 (0.2/s, credits~145)
+  tracked 50/166 (0.1/s, credits~342)
+  tracked 75/166 (0.1/s, credits~557)
+  tracked 100/166 (0.1/s, credits~691)
+  tracked 125/166 (0.1/s, credits~824)
+  tracked 150/166 (0.1/s, credits~999)
+stage 2: credit guard hit - 6 item(s) left for a later run (spent ~1086.9 credits)
+wrote D:\code\ClaudeCode\phase2_planbench\cache\tasks.json: 210 tasks (204 from state tracks, 6 caption fallback)

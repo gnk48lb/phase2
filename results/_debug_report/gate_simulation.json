@@ -1,0 +1,700 @@
+{
+  "created_at": "2026-11-14T03:37:20.242378+00:00",
+  "method": "versioned_state_ledger",
+  "n_samples": 10,
+  "base_accuracy": 0.6,
+  "always_verify_accuracy": 0.9,
+  "risk_summary": {
+    "mean": 0.4035,
+    "median": 0.41,
+    "mean_correct": 0.384792,
+    "mean_wrong": 0.431563,
+    "n_correct": 6,
+    "n_wrong": 4
+  },
+  "sweep": [
+    {
+      "tau": 0.0,
+      "accuracy": 0.9,
+      "exact": 0.9,
+      "avg_extra_perception_cost": 1.0,
+      "gated_samples": 10,
+      "n": 10
+    },
+    {
+      "tau": 0.05,
+      "accuracy": 0.9,
+      "exact": 0.9,
+      "avg_extra_perception_cost": 1.0,
+      "gated_samples": 10,
+      "n": 10
+    },
+    {
+      "tau": 0.1,
+      "accuracy": 0.9,
+      "exact": 0.9,
+      "avg_extra_perception_cost": 1.0,
+      "gated_samples": 10,
+      "n": 10
+    },
+    {
+      "tau": 0.15,
+      "accuracy": 0.9,
+      "exact": 0.9,
+      "avg_extra_perception_cost": 1.0,
+      "gated_samples": 10,
+      "n": 10
+    },
+    {
+      "tau": 0.2,
+      "accuracy": 0.9,
+      "exact": 0.9,
+      "avg_extra_perception_cost": 1.0,
+      "gated_samples": 10,
+      "n": 10
+    },
+    {
+      "tau": 0.25,
+      "accuracy": 0.9,
+      "exact": 0.9,
+      "avg_extra_perception_cost": 1.0,
+      "gated_samples": 10,
+      "n": 10
+    },
+    {
+      "tau": 0.3,
+      "accuracy": 0.9,
+      "exact": 0.9,
+      "avg_extra_perception_cost": 0.9,
+      "gated_samples": 9,
+      "n": 10
+    },
+    {
+      "tau": 0.35,
+      "accuracy": 0.9,
+      "exact": 0.9,
+      "avg_extra_perception_cost": 0.7,
+      "gated_samples": 7,
+      "n": 10
+    },
+    {
+      "tau": 0.4,
+      "accuracy": 0.8,
+      "exact": 0.8,
+      "avg_extra_perception_cost": 0.5,
+      "gated_samples": 5,
+      "n": 10
+    },
+    {
+      "tau": 0.45,
+      "accuracy": 0.8,
+      "exact": 0.8,
+      "avg_extra_perception_cost": 0.3,
+      "gated_samples": 3,
+      "n": 10
+    },
+    {
+      "tau": 0.5,
+      "accuracy": 0.7,
+      "exact": 0.7,
+      "avg_extra_perception_cost": 0.1,
+      "gated_samples": 1,
+      "n": 10
+    },
+    {
+      "tau": 0.55,
+      "accuracy": 0.7,
+      "exact": 0.7,
+      "avg_extra_perception_cost": 0.1,
+      "gated_samples": 1,
+      "n": 10
+    },
+    {
+      "tau": 0.6,
+      "accuracy": 0.6,
+      "exact": 0.6,
+      "avg_extra_perception_cost": 0.0,
+      "gated_samples": 0,
+      "n": 10
+    },
+    {
+      "tau": 0.65,
+      "accuracy": 0.6,
+      "exact": 0.6,
+      "avg_extra_perception_cost": 0.0,
+      "gated_samples": 0,
+      "n": 10
+    },
+    {
+      "tau": 0.7,
+      "accuracy": 0.6,
+      "exact": 0.6,
+      "avg_extra_perception_cost": 0.0,
+      "gated_samples": 0,
+      "n": 10
+    },
+    {
+      "tau": 0.75,
+      "accuracy": 0.6,
+      "exact": 0.6,
+      "avg_extra_perception_cost": 0.0,
+      "gated_samples": 0,
+      "n": 10
+    },
+    {
+      "tau": 0.8,
+      "accuracy": 0.6,
+      "exact": 0.6,
+      "avg_extra_perception_cost": 0.0,
+      "gated_samples": 0,
+      "n": 10
+    },
+    {
+      "tau": 0.85,
+      "accuracy": 0.6,
+      "exact": 0.6,
+      "avg_extra_perception_cost": 0.0,
+      "gated_samples": 0,
+      "n": 10
+    },
+    {
+      "tau": 0.9,
+      "accuracy": 0.6,
+      "exact": 0.6,
+      "avg_extra_perception_cost": 0.0,
+      "gated_samples": 0,
+      "n": 10
+    },
+    {
+      "tau": 0.95,
+      "accuracy": 0.6,
+      "exact": 0.6,
+      "avg_extra_perception_cost": 0.0,
+      "gated_samples": 0,
+      "n": 10
+    },
+    {
+      "tau": 1.0,
+      "accuracy": 0.6,
+      "exact": 0.6,
+      "avg_extra_perception_cost": 0.0,
+      "gated_samples": 0,
+      "n": 10
+    }
+  ],
+  "samples": [
+    {
+      "task_id": "pb264",
+      "subset": "Progress Tracking",
+      "gold": "Step 3",
+      "prediction": "Step 3",
+      "correct": true,
+      "exact": true,
+      "confidence": 0.88,
+      "risk": {
+        "risk": 0.46125,
+        "components": {
+          "span_frames": 1.75,
+          "span_norm": 0.291667,
+          "horizon_frames": 6,
+          "conflicts": 6,
+          "conflict_norm": 1.0,
+          "observations_seen": 6,
+          "model_confidence": 0.88,
+          "uncertainty": 0.12
+        },
+        "weights": {
+          "span": 0.45,
+          "conflict": 0.3,
+          "uncertainty": 0.25
+        },
+        "relevant_keys": [
+          "white bowl with blue exterior",
+          "label:crownfield; corn; toshiba; 12:00; 800w",
+          "event:holds cereal bag beside bowl",
+          "event:places bowl inside microwave"
+        ]
+      },
+      "target": {
+        "key": "event:holds cereal bag beside bowl",
+        "state": "in progress",
+        "staleness": 5,
+        "conflicts": 0
+      },
+      "verification_frame": 4,
+      "verification_reason": "latest supersession touching a question-relevant record",
+      "verified_prediction": "Step 3",
+      "verified_correct": true,
+      "verification": {
+        "frame": 4,
+        "entity": "event:holds cereal bag beside bowl",
+        "observation": "not visible",
+        "present": false
+      }
+    },
+    {
+      "task_id": "pb260",
+      "subset": "Progress Tracking",
+      "gold": "Step 4",
+      "prediction": "Step 3",
+      "correct": false,
+      "exact": false,
+      "confidence": 0.9,
+      "risk": {
+        "risk": 0.4,
+        "components": {
+          "span_frames": 3.0,
+          "span_norm": 0.5,
+          "horizon_frames": 6,
+          "conflicts": 3,
+          "conflict_norm": 0.5,
+          "observations_seen": 6,
+          "model_confidence": 0.9,
+          "uncertainty": 0.1
+        },
+        "weights": {
+          "span": 0.45,
+          "conflict": 0.3,
+          "uncertainty": 0.25
+        },
+        "relevant_keys": [
+          "tortilla",
+          "peanut butter jar",
+          "event:holds coated tortilla",
+          "event:folds filled tortilla"
+        ]
+      },
+      "target": {
+        "key": "peanut butter jar",
+        "state": "open, brown spread inside",
+        "staleness": 4,
+        "conflicts": 0
+      },
+      "verification_frame": 3,
+      "verification_reason": "latest supersession touching a question-relevant record",
+      "verified_prediction": "Step 4",
+      "verified_correct": true,
+      "verification": {
+        "frame": 3,
+        "entity": "peanut butter jar",
+        "observation": "not visible",
+        "present": false
+      }
+    },
+    {
+      "task_id": "pb267",
+      "subset": "Progress Tracking",
+      "gold": "Step 2",
+      "prediction": "Step 2",
+      "correct": true,
+      "exact": true,
+      "confidence": 0.95,
+      "risk": {
+        "risk": 0.3775,
+        "components": {
+          "span_frames": 2.2,
+          "span_norm": 0.366667,
+          "horizon_frames": 6,
+          "conflicts": 4,
+          "conflict_norm": 0.666667,
+          "observations_seen": 6,
+          "model_confidence": 0.95,
+          "uncertainty": 0.05
+        },
+        "weights": {
+          "span": 0.45,
+          "conflict": 0.3,
+          "uncertainty": 0.25
+        },
+        "relevant_keys": [
+          "white bowl with egg mixture",
+          "event:spoon held over bowl",
+          "event:red spoon held over bowl",
+          "event:bowl held steady",
+          "event:yellow mixture whisked"
+        ]
+      },
+      "target": {
+        "key": "event:spoon held over bowl",
+        "state": "in progress",
+        "staleness": 4,
+        "conflicts": 0
+      },
+      "verification_frame": 4,
+      "verification_reason": "latest supersession touching a question-relevant record",
+      "verified_prediction": "Step 2",
+      "verified_correct": true,
+      "verification": {
+        "frame": 4,
+        "entity": "event:spoon held over bowl",
+        "observation": "not visible",
+        "present": false
+      }
+    },
+    {
+      "task_id": "pb266",
+      "subset": "Progress Tracking",
+      "gold": "Step 2",
+      "prediction": "Step 1",
+      "correct": false,
+      "exact": false,
+      "confidence": 0.83,
+      "risk": {
+        "risk": 0.5675,
+        "components": {
+          "span_frames": 3.0,
+          "span_norm": 0.5,
+          "horizon_frames": 6,
+          "conflicts": 6,
+          "conflict_norm": 1.0,
+          "observations_seen": 6,
+          "model_confidence": 0.83,
+          "uncertainty": 0.17
+        },
+        "weights": {
+          "span": 0.45,
+          "conflict": 0.3,
+          "uncertainty": 0.25
+        },
+        "relevant_keys": [
+          "red tomato half",
+          "tomato slices",
+          "clear blender jug",
+          "event:holding tomato beside sliced pieces",
+          "red bell pepper",
+          "label:4:55",
+          "event:positioning pepper over processor cup",
+          "event:holding lid while mixture spins",
+          "event:rinsing glass and hose nozzle",
+          "event:examining toothbrush-like device over drain"
+        ]
+      },
+      "target": {
+        "key": "event:holding tomato beside sliced pieces",
+        "state": "in progress",
+        "staleness": 5,
+        "conflicts": 0
+      },
+      "verification_frame": 2,
+      "verification_reason": "latest supersession touching a question-relevant record",
+      "verified_prediction": "Step 2",
+      "verified_correct": true,
+      "verification": {
+        "frame": 2,
+        "entity": "event:holding tomato beside sliced pieces",
+        "observation": "not visible",
+        "present": false
+      }
+    },
+    {
+      "task_id": "pb261",
+      "subset": "Progress Tracking",
+      "gold": "Step 3",
+      "prediction": "Step 2",
+      "correct": false,
+      "exact": false,
+      "confidence": 0.86,
+      "risk": {
+        "risk": 0.45375,
+        "components": {
+          "span_frames": 2.25,
+          "span_norm": 0.375,
+          "horizon_frames": 6,
+          "conflicts": 5,
+          "conflict_norm": 0.833333,
+          "observations_seen": 6,
+          "model_confidence": 0.86,
+          "uncertainty": 0.14
+        },
+        "weights": {
+          "span": 0.45,
+          "conflict": 0.3,
+          "uncertainty": 0.25
+        },
+        "relevant_keys": [
+          "tortilla",
+          "tan spread",
+          "event:spreads tan paste onto tortilla",
+          "brown spread",
+          "white square plate",
+          "event:folds filled tortilla",
+          "event:holds toilet-paper roll",
+          "event:holds paper towel over food"
+        ]
+      },
+      "target": {
+        "key": "tan spread",
+        "state": "unevenly smoothed over tortilla",
+        "staleness": 5,
+        "conflicts": 0
+      },
+      "verification_frame": 5,
+      "verification_reason": "latest supersession touching a question-relevant record",
+      "verified_prediction": "Step 3",
+      "verified_correct": true,
+      "verification": {
+        "frame": 5,
+        "entity": "tan spread",
+        "observation": "visible inside an open jar near the upper right of the countertop",
+        "present": true
+      }
+    },
+    {
+      "task_id": "pb269",
+      "subset": "Progress Tracking",
+      "gold": "Step 3",
+      "prediction": "Step 3",
+      "correct": true,
+      "exact": true,
+      "confidence": 0.93,
+      "risk": {
+        "risk": 0.26125,
+        "components": {
+          "span_frames": 1.25,
+          "span_norm": 0.208333,
+          "horizon_frames": 6,
+          "conflicts": 3,
+          "conflict_norm": 0.5,
+          "observations_seen": 6,
+          "model_confidence": 0.93,
+          "uncertainty": 0.07
+        },
+        "weights": {
+          "span": 0.45,
+          "conflict": 0.3,
+          "uncertainty": 0.25
+        },
+        "relevant_keys": [
+          "red measuring cup",
+          "stainless steel mixing bowl",
+          "event:holding red measuring cup",
+          "stand mixer bowl"
+        ]
+      },
+      "target": {
+        "key": "event:holding red measuring cup",
+        "state": "in progress",
+        "staleness": 5,
+        "conflicts": 0
+      },
+      "verification_frame": 2,
+      "verification_reason": "latest supersession touching a question-relevant record",
+      "verified_prediction": "Step 3",
+      "verified_correct": true,
+      "verification": {
+        "frame": 2,
+        "entity": "event:holding red measuring cup",
+        "observation": "not visible",
+        "present": false
+      }
+    },
+    {
+      "task_id": "pb268",
+      "subset": "Progress Tracking",
+      "gold": "Step 2",
+      "prediction": "Step 2",
+      "correct": true,
+      "exact": true,
+      "confidence": 0.94,
+      "risk": {
+        "risk": 0.45,
+        "components": {
+          "span_frames": 1.8,
+          "span_norm": 0.3,
+          "horizon_frames": 6,
+          "conflicts": 6,
+          "conflict_norm": 1.0,
+          "observations_seen": 6,
+          "model_confidence": 0.94,
+          "uncertainty": 0.06
+        },
+        "weights": {
+          "span": 0.45,
+          "conflict": 0.3,
+          "uncertainty": 0.25
+        },
+        "relevant_keys": [
+          "floral bowl",
+          "orange egg yolk",
+          "event:separating egg over bowl",
+          "event:holding eggshell above bowl",
+          "event:whisking yellow mixture"
+        ]
+      },
+      "target": {
+        "key": "event:separating egg over bowl",
+        "state": "in progress",
+        "staleness": 4,
+        "conflicts": 0
+      },
+      "verification_frame": 4,
+      "verification_reason": "latest supersession touching a question-relevant record",
+      "verified_prediction": "Step 2",
+      "verified_correct": true,
+      "verification": {
+        "frame": 4,
+        "entity": "event:separating egg over bowl",
+        "observation": "not visible",
+        "present": false
+      }
+    },
+    {
+      "task_id": "pb263",
+      "subset": "Progress Tracking",
+      "gold": "Step 3",
+      "prediction": "Step 3",
+      "correct": true,
+      "exact": true,
+      "confidence": 0.97,
+      "risk": {
+        "risk": 0.33875,
+        "components": {
+          "span_frames": 1.75,
+          "span_norm": 0.291667,
+          "horizon_frames": 6,
+          "conflicts": 4,
+          "conflict_norm": 0.666667,
+          "observations_seen": 6,
+          "model_confidence": 0.97,
+          "uncertainty": 0.03
+        },
+        "weights": {
+          "span": 0.45,
+          "conflict": 0.3,
+          "uncertainty": 0.25
+        },
+        "relevant_keys": [
+          "red tomato",
+          "event:holds tomato beneath sprayer",
+          "event:wipes tomato with cloth",
+          "event:slices tomato on board",
+          "event:tilts board toward plate",
+          "label:1",
+          "label:2",
+          "label:3"
+        ]
+      },
+      "target": {
+        "key": "event:holds tomato beneath sprayer",
+        "state": "ongoing",
+        "staleness": 5,
+        "conflicts": 0
+      },
+      "verification_frame": 4,
+      "verification_reason": "latest supersession touching a question-relevant record",
+      "verified_prediction": "Step 3",
+      "verified_correct": true,
+      "verification": {
+        "frame": 4,
+        "entity": "event:holds tomato beneath sprayer",
+        "observation": "not visible",
+        "present": false
+      }
+    },
+    {
+      "task_id": "pb262",
+      "subset": "Progress Tracking",
+      "gold": "Step 4",
+      "prediction": "Step 4",
+      "correct": true,
+      "exact": true,
+      "confidence": 0.97,
+      "risk": {
+        "risk": 0.42,
+        "components": {
+          "span_frames": 1.5,
+          "span_norm": 0.25,
+          "horizon_frames": 6,
+          "conflicts": 6,
+          "conflict_norm": 1.0,
+          "observations_seen": 6,
+          "model_confidence": 0.97,
+          "uncertainty": 0.03
+        },
+        "weights": {
+          "span": 0.45,
+          "conflict": 0.3,
+          "uncertainty": 0.25
+        },
+        "relevant_keys": [
+          "red bell pepper",
+          "event:holding pepper under faucet",
+          "red tomato",
+          "event:slicing red tomato",
+          "patterned white plate",
+          "black-and-silver grinder",
+          "event:grinding seasoning over tomatoes",
+          "black measuring scoop",
+          "label:1.0 l",
+          "event:holding measuring scoop over rack"
+        ]
+      },
+      "target": {
+        "key": "event:holding pepper under faucet",
+        "state": "in progress",
+        "staleness": 5,
+        "conflicts": 0
+      },
+      "verification_frame": 4,
+      "verification_reason": "latest supersession touching a question-relevant record",
+      "verified_prediction": "Step 4",
+      "verified_correct": true,
+      "verification": {
+        "frame": 4,
+        "entity": "event:holding pepper under faucet",
+        "observation": "not visible",
+        "present": false
+      }
+    },
+    {
+      "task_id": "pb265",
+      "subset": "Progress Tracking",
+      "gold": "Step 2",
+      "prediction": "Step 1",
+      "correct": false,
+      "exact": false,
+      "confidence": 0.86,
+      "risk": {
+        "risk": 0.305,
+        "components": {
+          "span_frames": 3.6,
+          "span_norm": 0.6,
+          "horizon_frames": 6,
+          "conflicts": 0,
+          "conflict_norm": 0.0,
+          "observations_seen": 6,
+          "model_confidence": 0.86,
+          "uncertainty": 0.14
+        },
+        "weights": {
+          "span": 0.45,
+          "conflict": 0.3,
+          "uncertainty": 0.25
+        },
+        "relevant_keys": [
+          "red tomato",
+          "event:holds tomato beneath faucet",
+          "red bell pepper chunk",
+          "event:slices red bell pepper",
+          "event:sprays water into sink"
+        ]
+      },
+      "target": {
+        "key": "red tomato",
+        "state": "wet and held",
+        "staleness": 5,
+        "conflicts": 0
+      },
+      "verification_frame": 2,
+      "verification_reason": "midpoint between the oldest verification and the current frame",
+      "verified_prediction": "Step 1",
+      "verified_correct": false,
+      "verification": {
+        "frame": 2,
+        "entity": "red tomato",
+        "observation": "being held over the opening of a clear container",
+        "present": true
+      }
+    }
+  ]
+}

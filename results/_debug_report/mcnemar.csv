@@ -1,0 +1,7 @@
+method_a,method_b,n,a_only_correct,b_only_correct,acc_a,acc_b,diff_pp,ci_low_pp,ci_high_pp,mcnemar_p,run,model
+versioned_state_ledger,append_only_ledger,10,0,0,0.9,0.9,0.0,0.0,0.0,1.0,smoke_mm,minimax-code-global/MiniMax-M3.1-Flash
+versioned_state_ledger,direct_baseline,10,0,1,0.9,1.0,-10.0,-30.0,0.0,1.0,smoke_mm,minimax-code-global/MiniMax-M3.1-Flash
+append_only_ledger,direct_baseline,10,0,1,0.9,1.0,-10.0,-30.0,0.0,1.0,smoke_mm,minimax-code-global/MiniMax-M3.1-Flash
+versioned_state_ledger,append_only_ledger,10,0,3,0.6,0.9,-30.0,-60.0,0.0,0.25,smoke_txt,minimax-code-global/MiniMax-M3.1-Flash
+versioned_state_ledger,direct_baseline,10,0,3,0.6,0.9,-30.0,-60.0,0.0,0.25,smoke_txt,minimax-code-global/MiniMax-M3.1-Flash
+append_only_ledger,direct_baseline,10,0,0,0.9,0.9,0.0,0.0,0.0,1.0,smoke_txt,minimax-code-global/MiniMax-M3.1-Flash

@@ -1,0 +1,35 @@
+{
+  "created_at": "2026-11-14T03:26:15.169494+00:00",
+  "mode": "text",
+  "tasks_file": "D:\\code\\ClaudeCode\\phase2_planbench\\cache\\tasks.json",
+  "subset_file": null,
+  "tasks_per_model": {
+    "minimax-code-global/MiniMax-M3.1-Flash": [
+      "pb260",
+      "pb261",
+      "pb262",
+      "pb263",
+      "pb264",
+      "pb265",
+      "pb266",
+      "pb267",
+      "pb268",
+      "pb269"
+    ]
+  },
+  "methods": [
+    "direct_baseline",
+    "append_only_ledger",
+    "versioned_state_ledger"
+  ],
+  "temperature": 0,
+  "timeout_s": 300.0,
+  "prompt_parity_version": "phase2-planbench-v1",
+  "quota": {
+    "minimax-code-global/MiniMax-M3.1-Flash": {
+      "concurrency": 10,
+      "max_samples": null,
+      "tier": "unlimited"
+    }
+  }
+}
