@@ -275,40 +275,168 @@ Gemini 臂经 `agy` agent 外壳承载（不参与严格同构假设检验）。
 
 ---
 
-## 附：本轮交付物一览
+## R15 · 用户
+
+> （第二轮任务）请在 `D:\code\ClaudeCode\phase2_planbench` 工作目录下继续执行第二阶段实验……
+> 0. 硬性约束与红线：额度池底 `--credit-reserve 2000`；严禁重跑感知层缓存；严禁重跑 `txt_minimax` 的
+>    `direct_baseline` / `append_only_ledger`（各 210 条）。
+> 1. 修复 3 个核心 Bug：① `apply_verified_observation` 丢失全剧帧摘要；② `event:*` 瞬时动作污染核验目标；
+>    ③ `gate_simulation` 未按 `task_id` 去重。
+> 2. 优化 `absent` 语义 + 增加「机制适用域」分层统计（正序 80 题 / 乱序去重 130 题）。
+> 3. Step 1–5：补单测 → 重跑门控 → 续跑多模态 → 修跨模型 → 重新出图出报告。
+
+### R15 · 助手
+
+- **修 4 个 Bug**（27 个单测全绿）：`frame_summaries` 深拷贝 + 原位追加标记；新增
+  `is_trackable_entity()` 并把 `pick_target` 改为「有冲突 → 冲突数 → 过期度」优先；
+  门控复用 `analyze_planbench.dedup_rows()`；`absent` 时保留 `last_known_state` +
+  `visibility=out_of_view` 且不计冲突。
+  - **修复前 207 条里有 124 条（60%）选中了 `event:*`/`activity`**（必然核验出 "not visible"），
+    修复后 207/207 为物理实体。
+- **账本语义变更的处理**：`absent` 修复改变了 **76% 任务**的版本账本内容 → 版本臂必须重跑才自洽。
+  - `txt_minimax` 的 versioned + flat 已重跑（529 credits）；**`direct`/`append` 两臂 210 条原封未动**（红线）。
+  - `txt_gemini` 的 versioned + flat 用 Antigravity 的 Gemini 重跑（0 MiniMax 消耗）。
+  - 旧答案留档在 `answers_prefix_ledgerfix.jsonl`。
+- **门控重算**（清理 57/207 条仍适用的核验观测复用，其余 150 条重新核验）：
+  未门控 30.3% → 只重问 28.9% → 核验+重答 29.4%；**核验首次略优于只重问对照**（修复前是更差）。
+  风险分 AUC=0.480（低于随机）：过期跨度 0.597、冲突次数 **0.372（反号）**、置信度 0.515。
+- **顺手修的解析 bug**：部分 provider 把整个 schema JSON 塞进 `answer` 字段 → 预测被当原始串判错；
+  加 `prompts._unwrap_answer()` + `regrade.py`（**离线**重解析重评全部历史结果，零积分）。
+- **机制适用域分层**：正序 80 题三者接近（append 58.8% ≈ direct 55.0% ≈ versioned 53.8%）；
+  乱序/去重 130 题差距放大（direct 23.1% vs versioned 14.9% / append 27.1%）
+  → **版本账本在它本该占优的正序任务上也没有优势**。
+
+## R16 · 用户
+
+> workbuddy的deepseek额度用尽了, 要不先暂停一下, 我去把opencode打开然后重启, 你试试这个
+
+### R16 · 助手
+
+暂停跨模型修复（deepseek 额度耗尽），保留 MiniMax 多模态续跑。
+探查 OpenCode：本机无进程、PATH 与常见安装目录均无 CLI → 需要用户侧启动。
+同时利用 Antigravity 的 `agy` CLI（`agy models` 实测有 Gemini 3.8 Flash 三档 + Claude Sonnet/Opus 4.6 + GPT-OSS 120B）
+补齐 Gemini 跨模型臂的 versioned + flat 四臂（0 MiniMax 消耗）。
+
+## R17 · 用户
+
+> OpenCode Zen Free好像限流挺严重的, 你检查一下, 要不还是算了?
+
+### R17 · 助手
+
+实测确认：三条 Zen Free 路由**失败率 90–93%**（HTTP 429，每模型仅 ~15/160 成功）→ 停掉并剔除其 538 行失败记录
+（留档 `answers_with_zen_attempt.jsonl`），把这个发现写进报告的覆盖度说明。
+
+## R18 · 用户
+
+> 现在opencode的模型刚打开, 可能要重启才能生效?
+
+### R18 · 助手
+
+重启后 `/v1/models` 出现三条 Zen 路由（`opencode-zen-free/{deepseek-v4.1-flash-free, glm-5.3-flash-free, minimax-m3.1-flash-free}`，
+且都支持图片）。单请求探针全部成功（0.8–2.1s，图像描述准确）。
+登记进 `CROSS_CHECK_CANDIDATES` 并开跑 → 随后因 90%+ 限流按 R17 放弃。
+
+## R19 · 用户
+
+> 那你补齐吧 / 注意可能又快没额度了, 不行的话我们明天再续跑
+
+### R19 · 助手
+
+按池底纪律推进：多模态在 ~2100 credits 处手动停机 → 额度回补后**断点续跑补齐到 210/210 题**
+（1146 credits，clean n=200–206/臂），跨模型改用还活着的 GLM/Loomy 慢速补。
+
+## R20 · 用户
+
+> 看一下还有多久能完成
+
+### R20 · 助手
+
+实测：缺 87 格、速率 2 cell/分 → 约 44 分钟。但发现**失败原因是思考模型空响应**
+（GLM 63 次、DeepSeek 59 次，不是 429）→ 把重试阶梯从 2 档升到 3 档，
+第 2、3 档加「只输出 JSON、不要解释、不要出声思考」的硬提示。
+
+## R21 · 用户
+
+> autoclaw-cn/zai_glm-5.3-flash这个额度用尽了, 你用另外那几个autigravity试试
+
+### R21 · 助手
+
+实测 `autoclaw/` 是**另一个账号池**（3 个账号，各 1.3–2 万积分），`autoclaw/zai_glm-5.3-flash`
+用真实评测提示 2/2 通过（11–46s）→ 换过去补 GLM 那一列的缺口。
+
+## R22 · 用户
+
+> 那你补齐吧 / 注意可能又快没额度了, 不行的话我们明天再续跑
+
+### R22 · 助手
+
+按池底纪律推进：多模态补齐到 **210/210 题**（clean n=200–206/臂）；
+跨模型改用可靠路由（GLM 两池合并 150/150、Qwen3.8-Flash 113/150、Gemini 50×4 完整、
+DeepSeek-V4.1 84/150 额度阻塞）；弃用 3 条重复/劣化路由（留档 `answers_all_routes.jsonl`）。
+重试阶梯、路由实测、合并规则全部写进 `HANDOFF.md §8.6–8.7`。
+
+---
+
+## 附：最终交付物
 
 ```text
 phase2_planbench/
-├─ Plan-Bench/                 # 克隆的基准仓库
-├─ HANDOFF.md                  # 交给 Antigravity 的交接文档
-├─ chat_history.md             # Antigravity 侧的会话导出（对照）
-├─ chat_history_claude_code.md# 本文件
-├─ README.md                   # 设计、额度策略、命令、最终结果
-├─ common.py                   # 复用第一阶段 MagpieClient + 多模态 + 配额分级 + CreditMeter
-├─ memory_ledger.py            # 追加式 / 版本覆盖账本 + 风险分 + 核验帧选择
-├─ prompts.py                  # 三组严格同构提示词 + 感知层提示词
-├─ grader.py                   # 确定性评分（graded / exact）
-├─ prepare_data.py             # 克隆 → 解析 → 探针 → 逐帧标注 → 跨帧追踪 → tasks.json
-├─ run_planbench.py            # 三组 × 多模型 × 文本/多模态（额度闸门 + 断点续跑）
-├─ gate_simulation.py          # 风险门控 + τ 扫描 + 「只重问」对照
-├─ analyze_planbench.py        # 统计表、McNemar/Bootstrap、两张图、summary.md
-├─ repair_run.py               # 剔除传输失败单元以便下一轮重跑
-├─ antigravity.py              # CDP 驱动 Antigravity 桌面端（本轮即由此接入）
-├─ run_phase2_aux.bat          # 跨模型失败单元修复批处理
-├─ tests/test_core.py          # 18 个单测
-├─ cache/                      # frame_captions.json / state_tracks.json / tasks.json / gate 缓存
-└─ results/                    # 各次运行 answers.jsonl、两张图、summary.md、mcnemar.csv
+├─ Plan-Bench/                    # 克隆的基准仓库（1.1 GB：image/ 384M、vlmevalkit/ 393M、questions.tsv）
+├─ HANDOFF.md                      # 交接文档（含全部路由实测、坑与续跑命令）
+├─ README.md                       # 设计、额度策略、命令、最终结果
+├─ chat_history.md                 # Antigravity 侧的会话导出（对照）
+├─ chat_history_claude_code.md     # 本文件（本会话记录）
+├─ common.py                       # 复用第一阶段 MagpieClient + 多模态 + 配额分级 + CreditMeter + 三档重试
+├─ memory_ledger.py                # 追加式/版本覆盖账本 + 风险分 + 核验帧选择 + absent 语义
+├─ prompts.py                      # 三组严格同构提示词 + 感知层提示词 + 嵌套 JSON 拆解
+├─ grader.py                       # 确定性评分（graded / exact）
+├─ prepare_data.py                 # 克隆 → 解析 → 探针 → 逐帧标注 → 跨帧追踪 → tasks.json
+├─ run_planbench.py                # 三组 × 多模型 × 文本/多模态（额度闸门 + 断点续跑 + --rerun-methods）
+├─ gate_simulation.py              # 风险门控 + τ 扫描 + 「只重问」对照 + 按 task 去重
+├─ analyze_planbench.py            # 统计表、McNemar/Bootstrap、机制分层、两张图、summary.md
+├─ repair_run.py                   # 剔除传输失败单元以便下一轮重跑
+├─ regrade.py                      # 离线重新解析 + 重新评分（零积分，用于口径修正）
+├─ clean_gate_cache.py             # 门控缓存清理（保留仍适用的核验观测）
+├─ run_gemini.py                   # Antigravity agy CLI 版运行器（Antigravity 写的）
+├─ antigravity.py                  # CDP 驱动 Antigravity 桌面端
+├─ run_phase2_aux.bat              # 跨模型失败单元修复批处理
+├─ model_catalog_live.json         # Magpie /v1/models 的实时快照
+├─ tests/test_core.py              # 18 个单测
+├─ tests/test_gate_fixes.py        # 9 个回归单测（4 个 Bug 的修复验证）
+├─ cache/                          # frame_captions.json / state_tracks.json / tasks.json / gate_verified.json
+└─ results/                        # 各次运行 answers.jsonl、两张图、summary.md、mcnemar.csv、accuracy_table.csv
 ```
 
-**最终结果（Clean 口径，剔除传输失败）**
+**最终结果（Clean 口径：剔除传输失败）**
 
 | 条件 | 模型 | 有效样本 | direct | append-only | versioned | versioned-flat |
 |---|---|---|---|---|---|---|
-| 文本 | `minimax-code-global/MiniMax-M3.1-Flash` | 201–210 | 35.2% | **39.2%** | 31.4% | 30.3% |
-| 端到端多模态 | `MiniMax-M3.1-Flash`（两条账号池混跑） | 141–151 | **66.2%** | 48.3% | 52.5% | — |
-| 文本 50 条 | `antigravity/gemini-3.8-flash` | 50 | 36.0% | 36.0% | 30.0% | — |
-| 文本 50 条 | `autoclaw-cn/zai_glm-5.3-flash` | 43–47 | **45.7%** | 42.6% | 39.5% | — |
-| 文本 50 条 | `loomy/qwen-3.8-max` | 23–25 | 39.1% | 32.0% | **41.7%** | — |
-| 文本 50 条 | `workbuddy/deepseek-v4.1-flash` | 24–28 | 30.8% | **42.9%** | 33.3% | — |
+| 文本 210 题 | `minimax-code-global/MiniMax-M3.1-Flash` | 199–210 | 35.2% | **39.2%** | 30.3% | 30.2% |
+| 端到端多模态 210 题 | `MiniMax-M3.1-Flash`（两条账号池混跑） | 200–206 | **58.4%** | 44.7% | 45.5% | — |
+| 文本 50 题 | `antigravity/gemini-3.8-flash` | 48–50 | **38.0%** | 36.0% | 33.3% | 34.0% |
+| 文本 50 题 | GLM-5.3-Flash（`autoclaw-cn`+`autoclaw` 两池合并） | 43–48 | **43.8%** | 42.6% | 39.5% | — |
+| 文本 43 题 | `loomy/qwen3.8-flash` | 36–39 | 39.5% | **41.0%** | 33.3% | — |
+| 文本 31 题 | `workbuddy/deepseek-v4.1-flash` | 27–29 | 35.7% | **44.8%** | 37.0% | — |
 
-**未完成**：多模态仍缺 51 条任务 + 5 个失败单元（额度耗尽，待续跑，命令见 `README.md`）。
+**配对 McNemar（Clean 配对）**
+- 文本 210 题：`versioned` vs `append` **−9.0 pp（n=201, p=0.0021）**；
+  `flat` vs `append` −9.6 pp（p=0.0013）；`flat` vs `versioned` −1.0 pp（p=0.85，**长度混淆排除**）。
+- 多模态 210 题：`append` vs `direct` **−13.0 pp（p=0.0003）**、`versioned` vs `direct` **−12.3 pp（p=0.0007）**；
+  `versioned` vs `append` +0.5 pp（p=1.0，两种账本同样有害）。
+- 跨模型 4 族：Qwen −8.6 pp（p=0.25）、DeepSeek −8.0 pp（p=0.50）、GLM +0.0 pp（p=1.00）、Gemini −2.1 pp（p=1.00）
+  → 方向 3/4 一致但**统计功效不足**，只作方向性参考。
+
+**机制适用域分层（文本条件）**
+- 正序状态演进 80 题（版本账本的目标适用域）：`append` 58.8% ≈ `direct` 55.0% ≈ `versioned` 53.8%
+- 乱序重排 / 跨视角去重 130 题：`direct` 23.1% vs `versioned` 14.9% / `append` 27.1%
+→ **版本账本在它本该占优的正序任务上也没有优势**，劣势集中在帧序被破坏的任务上。
+
+**风险门控（201 条唯一样本，修复后）**
+未门控 30.3% → 只重问 28.9% → 核验+重答 29.4%；风险分 **AUC=0.480**（低于随机 0.5），
+拆项：过期跨度 0.597、冲突次数 **0.372（反号）**、置信度 0.515。
+→ 风险分目前测的是「状态波动/难度」而不是「出错概率」，第三阶段必须做**外部标定的验证器**。
+
+**额度**：global 3858 + `minimax-code` 999 = 4857（红线 2000，全程守住；跨模型与 Antigravity 侧零 MiniMax 消耗）。
+
+**仍未跑完的**：`workbuddy/deepseek-v4.1-flash` 还缺 66 格（上游额度 429，等回补后按
+`HANDOFF.md §8.3` 续跑即可，已完成的不会重复计费）。

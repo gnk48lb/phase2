@@ -33,12 +33,13 @@ import threading
 import time
 from typing import Any
 
+from analyze_planbench import dedup_rows, is_failure
 from common import (BASE_URL, API_KEY, CreditMeter, JsonCache, MagpieMultimodalClient,
                     UNLIMITED_MODEL, image_part, load_jsonl, magpie_credits, now_iso,
                     write_json)
 from grader import grade_answer
-from memory_ledger import (VersionedLedger, apply_verified_observation, staleness_risk,
-                            verification_frame)
+from memory_ledger import (VersionedLedger, apply_verified_observation, is_trackable_entity,
+                            staleness_risk, verification_frame)
 from prompts import build_user_prompt, parse_answer, system_prompt
 
 ROOT = Path(__file__).resolve().parent
@@ -55,6 +56,36 @@ VERIFY_USER = ("Entity: {entity}\nThis is frame {frame} of {total} of the episod
                "What is the state of this entity in this frame?")
 
 
+def load_gate_rows(path: Path, method: str) -> list[dict[str, Any]]:
+    """Unique samples for the gate: one row per task, failures dropped.
+
+    ``answers.jsonl`` is append-only, so the same cell can appear several
+    times (repairs, re-runs).  Without the dedup the sample set inflates and
+    the task count no longer matches the benchmark.
+    """
+    return [row for row in dedup_rows(load_jsonl(path))
+            if row.get("method") == method and not is_failure(row)]
+
+
+def reusable_observation(record: dict[str, Any] | None, entity: str | None,
+                         frame: int) -> dict[str, Any] | None:
+    """A cached single-frame verification that still applies to this target.
+
+    The VLM perception call is the expensive part of the gate, so it is reused
+    whenever the SAME entity is verified in the SAME frame.  The two re-answers
+    are never reused: they depend on the ledger, and the ledger semantics
+    changed with the absent-state fix.
+    """
+    if not record or not entity:
+        return None
+    if record.get("entity") != entity or int(record.get("frame", -1)) != int(frame):
+        return None
+    observation = record.get("observation") or {}
+    if observation.get("present") is None or observation.get("error"):
+        return None
+    return observation
+
+
 def build_ledger_for(task: dict[str, Any]) -> VersionedLedger:
     ledger = VersionedLedger()
     for observation in task.get("observations") or []:
@@ -63,21 +94,30 @@ def build_ledger_for(task: dict[str, Any]) -> VersionedLedger:
 
 
 def pick_target(ledger: VersionedLedger, question: str, current_frame: int) -> dict[str, Any] | None:
-    """The record most worth re-verifying: most stale and most conflicted."""
-    keys = ledger.relevant_keys(question)
+    """The physical entity most worth re-verifying.
+
+    Only trackable entities are eligible: an ``event:*`` action phrase or the
+    per-frame activity record looks maximally stale (it was written at frame 0
+    and never repeats) but re-verifying it in a later frame always returns
+    "not visible".  Among the physical entities, one that actually suffered a
+    state conflict is preferred over one that merely happens to be old.
+    """
+    keys = ledger.risk_keys(question)
     best, best_score = None, None
     for key in keys:
         record = ledger.records.get(key)
         if not record:
             continue
+        if not is_trackable_entity(key):
+            continue
         staleness = max(0, int(current_frame) - int(record["last_verified_frame"]))
         conflicts = ledger.conflicts.get(key, 0)
-        score = (staleness, conflicts)
+        score = (conflicts > 0, conflicts, staleness)
         if best_score is None or score > best_score:
             best, best_score = record, score
     if best is None:
         return None
-    return {"key": best["entity"], "state": best["state"], "staleness": best_score[0],
+    return {"key": best["entity"], "state": best["state"], "staleness": best_score[2],
             "conflicts": best_score[1]}
 
 
@@ -190,8 +230,7 @@ def main() -> None:
 
     tasks = {task["task_id"]: task for task in
              json.loads(args.tasks.read_text(encoding="utf-8"))["tasks"]}
-    rows = [row for row in load_jsonl(args.answers)
-            if row.get("method") == args.method and not row.get("error")]
+    rows = load_gate_rows(args.answers, args.method)
     if not rows:
         raise SystemExit(f"no {args.method} rows in {args.answers}")
 
@@ -216,7 +255,18 @@ def main() -> None:
                         "target": target, "verification_frame": choice["frame"],
                         "verification_reason": choice["reason"]})
 
-    pending = [s for s in samples if cache.get(s["task_id"]) is None]
+    pending = []
+    for sample in samples:
+        cached = cache.get(sample["task_id"]) or {}
+        frame = int(sample["verification_frame"])
+        entity = (sample.get("target") or {}).get("key")
+        observation = reusable_observation(cached, entity, frame)
+        # The answers always depend on the ledger, so they are recomputed when
+        # the cached record has none; only the single-frame perception is
+        # reused, and only when it still applies to the same target/frame.
+        if cached.get("answer") and (observation is not None or not entity):
+            continue
+        pending.append(sample)
     if pending and not args.skip_verification:
         print(f"verifying {len(pending)} samples (1 extra perception + 1 re-answer each); "
               f"MiniMax credits left: {magpie_credits().get('balance')}", flush=True)
@@ -228,6 +278,7 @@ def main() -> None:
             target = sample.get("target")
             frame = int(sample["verification_frame"])
             entity = (target or {}).get("key")
+            cached = cache.get(sample["task_id"]) or {}
             record: dict[str, Any] = {"frame": frame, "entity": entity}
             # Control: re-answer with the UNCHANGED ledger.  Any difference
             # between this and the original answer is the "second attempt"
@@ -236,7 +287,11 @@ def main() -> None:
             control = reanswer(client, task, original_ledger, record)
             meter.record(control.get("meta"))
             record["control_answer"] = control
-            if entity:
+            observation = reusable_observation(cached, entity, frame)
+            if observation is not None:
+                record["observation"] = observation
+                record["observation_reused"] = True
+            elif entity:
                 observation = verify_frame(client, task, frame, entity, task["num_frames"])
                 record["observation"] = observation
                 meter.record(observation.get("meta"))

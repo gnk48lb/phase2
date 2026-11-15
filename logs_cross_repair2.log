@@ -1,0 +1,126 @@
+=== [1/2] drop infrastructure-failed cross-model cells ===
+results\txt_cross\answers.jsonl: kept 303, dropped 203 failed cell(s)
+  - workbuddy/deepseek-v4.1-flash direct_baseline pb302: RuntimeError: Magpie request failed after 3 attempts: HTTPError: HTTP Error 429:
+  - workbuddy/deepseek-v4.1-flash direct_baseline pb365: RuntimeError: Magpie request failed after 3 attempts: HTTPError: HTTP Error 429:
+  - workbuddy/deepseek-v4.1-flash append_only_ledger pb302: RuntimeError: Magpie request failed after 3 attempts: HTTPError: HTTP Error 429:
+  - workbuddy/deepseek-v4.1-flash append_only_ledger pb365: RuntimeError: Magpie request failed after 3 attempts: HTTPError: HTTP Error 429:
+  - workbuddy/deepseek-v4.1-flash versioned_state_ledger pb302: RuntimeError: Magpie request failed after 3 attempts: HTTPError: HTTP Error 429:
+  - workbuddy/deepseek-v4.1-flash versioned_state_ledger pb365: RuntimeError: Magpie request failed after 3 attempts: HTTPError: HTTP Error 429:
+  - workbuddy/deepseek-v4.1-flash versioned_state_ledger_flat pb302: RuntimeError: Magpie request failed after 3 attempts: HTTPError: HTTP Error 429:
+  - workbuddy/deepseek-v4.1-flash versioned_state_ledger_flat pb365: RuntimeError: Magpie request failed after 3 attempts: HTTPError: HTTP Error 429:
+  - workbuddy/deepseek-v4.1-flash direct_baseline pb454: RuntimeError: Magpie request failed after 3 attempts: HTTPError: HTTP Error 429:
+  - workbuddy/deepseek-v4.1-flash direct_baseline pb271: RuntimeError: Magpie request failed after 3 attempts: HTTPError: HTTP Error 429:
+  - workbuddy/deepseek-v4.1-flash append_only_ledger pb271: RuntimeError: Magpie request failed after 3 attempts: HTTPError: HTTP Error 429:
+  - workbuddy/deepseek-v4.1-flash append_only_ledger pb454: RuntimeError: Magpie request failed after 3 attempts: HTTPError: HTTP Error 429:
+  - workbuddy/deepseek-v4.1-flash versioned_state_ledger pb271: RuntimeError: Magpie request failed after 3 attempts: HTTPError: HTTP Error 429:
+  - workbuddy/deepseek-v4.1-flash versioned_state_ledger pb454: RuntimeError: Magpie request failed after 3 attempts: HTTPError: HTTP Error 429:
+  - workbuddy/deepseek-v4.1-flash versioned_state_ledger_flat pb271: RuntimeError: Magpie request failed after 3 attempts: HTTPError: HTTP Error 429:
+  - workbuddy/deepseek-v4.1-flash versioned_state_ledger_flat pb454: RuntimeError: Magpie request failed after 3 attempts: HTTPError: HTTP Error 429:
+  - workbuddy/deepseek-v4.1-flash direct_baseline pb410: RuntimeError: Magpie request failed after 3 attempts: HTTPError: HTTP Error 429:
+  - workbuddy/deepseek-v4.1-flash direct_baseline pb392: RuntimeError: Magpie request failed after 3 attempts: HTTPError: HTTP Error 429:
+  - workbuddy/deepseek-v4.1-flash append_only_ledger pb410: RuntimeError: Magpie request failed after 3 attempts: HTTPError: HTTP Error 429:
+  - workbuddy/deepseek-v4.1-flash append_only_ledger pb392: RuntimeError: Magpie request failed after 3 attempts: HTTPError: HTTP Error 429:
+=== [2/2] re-run those cells (terse-retry enabled) ===
+mode=text models={'workbuddy/deepseek-v4.1-flash': 50, 'autoclaw-cn/zai_glm-5.3-flash': 50, 'loomy/qwen-3.8-max': 50} 68 task bundle(s) / 450 request(s) to do; MiniMax credits left: 9236.46
+[1/450] workbuddy/deepseek-v4.1-flash direct_baseline pb289: correct=True exact=True conf=0.9 3.401s credits~0.0/inf elapsed=3s
+[2/450] workbuddy/deepseek-v4.1-flash append_only_ledger pb289: correct=True exact=True conf=0.9 6.174s credits~0.0/inf elapsed=10s
+[3/450] workbuddy/deepseek-v4.1-flash versioned_state_ledger pb289: correct=True exact=True conf=0.9 3.798s credits~0.0/inf elapsed=13s
+[4/450] workbuddy/deepseek-v4.1-flash direct_baseline pb415: correct=True exact=True conf=0.9 60.279s credits~0.0/inf elapsed=60s
+[5/450] autoclaw-cn/zai_glm-5.3-flash direct_baseline pb397: correct=False exact=False conf=0.62 117.75s credits~0.0/inf elapsed=118s
+[6/450] workbuddy/deepseek-v4.1-flash direct_baseline pb305: correct=False exact=False conf=None 141.489s credits~0.0/inf elapsed=155s
+[7/450] workbuddy/deepseek-v4.1-flash append_only_ledger pb415: correct=False exact=False conf=None 136.793s credits~0.0/inf elapsed=197s
+[8/450] workbuddy/deepseek-v4.1-flash versioned_state_ledger pb415: correct=True exact=True conf=0.95 40.958s credits~0.0/inf elapsed=238s
+[9/450] autoclaw-cn/zai_glm-5.3-flash append_only_ledger pb397: correct=False exact=False conf=0.6 177.908s credits~0.0/inf elapsed=296s
+[10/450] workbuddy/deepseek-v4.1-flash append_only_ledger pb305: correct=False exact=False conf=None 143.319s credits~0.0/inf elapsed=298s
+[11/450] loomy/qwen-3.8-max direct_baseline pb302: correct=False exact=False conf=None 318.772s credits~0.0/inf elapsed=319s
+[12/450] loomy/qwen-3.8-max direct_baseline pb409: correct=False exact=False conf=None 330.264s credits~0.0/inf elapsed=330s
+[13/450] workbuddy/deepseek-v4.1-flash direct_baseline pb409: correct=False exact=False conf=0.95 107.948s credits~0.0/inf elapsed=346s
+[14/450] workbuddy/deepseek-v4.1-flash versioned_state_ledger pb305: correct=False exact=False conf=None 142.45s credits~0.0/inf elapsed=441s
+[15/450] workbuddy/deepseek-v4.1-flash append_only_ledger pb409: correct=False exact=False conf=None 137.003s credits~0.0/inf elapsed=483s
+[16/450] workbuddy/deepseek-v4.1-flash versioned_state_ledger pb409: correct=False exact=False conf=0.95 65.482s credits~0.0/inf elapsed=548s
+[17/450] workbuddy/deepseek-v4.1-flash direct_baseline pb327: correct=False exact=False conf=None 138.647s credits~0.0/inf elapsed=579s
+[18/450] autoclaw-cn/zai_glm-5.3-flash direct_baseline pb409: correct=False exact=False conf=0.62 599.625s credits~0.0/inf elapsed=600s
+[19/450] loomy/qwen-3.8-max append_only_ledger pb302: correct=False exact=False conf=None 322.649s credits~0.0/inf elapsed=641s
+[20/450] loomy/qwen-3.8-max append_only_ledger pb409: correct=False exact=False conf=None 342.418s credits~0.0/inf elapsed=673s
+[21/450] workbuddy/deepseek-v4.1-flash direct_baseline pb298: correct=False exact=False conf=None 143.286s credits~0.0/inf elapsed=692s
+[22/450] workbuddy/deepseek-v4.1-flash append_only_ledger pb327: correct=False exact=False conf=0.85 135.644s credits~0.0/inf elapsed=715s
+[23/450] workbuddy/deepseek-v4.1-flash append_only_ledger pb298: correct=False exact=False conf=None 137.432s credits~0.0/inf elapsed=829s
+[24/450] workbuddy/deepseek-v4.1-flash versioned_state_ledger pb327: correct=False exact=False conf=None 139.548s credits~0.0/inf elapsed=855s
+[25/450] loomy/qwen-3.8-max versioned_state_ledger pb302: correct=False exact=False conf=None 319.11s credits~0.0/inf elapsed=961s
+[26/450] workbuddy/deepseek-v4.1-flash versioned_state_ledger pb298: correct=False exact=False conf=None 142.788s credits~0.0/inf elapsed=972s
+[27/450] loomy/qwen-3.8-max versioned_state_ledger pb409: correct=False exact=False conf=None 320.215s credits~0.0/inf elapsed=993s
+[28/450] workbuddy/deepseek-v4.1-flash direct_baseline pb291: correct=False exact=False conf=None 142.811s credits~0.0/inf elapsed=997s
+[29/450] workbuddy/deepseek-v4.1-flash direct_baseline pb302: correct=False exact=False conf=None 149.284s credits~0.0/inf elapsed=1121s
+[30/450] workbuddy/deepseek-v4.1-flash append_only_ledger pb291: correct=False exact=False conf=None 148.839s credits~0.0/inf elapsed=1146s
+[31/450] autoclaw-cn/zai_glm-5.3-flash versioned_state_ledger pb397: correct=False exact=False conf=0.65 879.395s credits~0.0/inf elapsed=1175s
+[32/450] workbuddy/deepseek-v4.1-flash append_only_ledger pb302: correct=False exact=False conf=None 143.501s credits~0.0/inf elapsed=1265s
+[33/450] loomy/qwen-3.8-max direct_baseline pb305: correct=False exact=False conf=None 321.44s credits~0.0/inf elapsed=1282s
+[34/450] workbuddy/deepseek-v4.1-flash versioned_state_ledger pb291: correct=False exact=False conf=None 140.134s credits~0.0/inf elapsed=1286s
+[35/450] loomy/qwen-3.8-max direct_baseline pb397: correct=False exact=False conf=None 327.443s credits~0.0/inf elapsed=1320s
+[36/450] workbuddy/deepseek-v4.1-flash versioned_state_ledger pb302: correct=False exact=False conf=None 140.67s credits~0.0/inf elapsed=1405s
+[37/450] workbuddy/deepseek-v4.1-flash direct_baseline pb412: correct=False exact=False conf=None 141.901s credits~0.0/inf elapsed=1428s
+[38/450] workbuddy/deepseek-v4.1-flash direct_baseline pb356: correct=False exact=False conf=None 157.545s credits~0.0/inf elapsed=1563s
+[39/450] workbuddy/deepseek-v4.1-flash append_only_ledger pb412: correct=False exact=False conf=None 149.39s credits~0.0/inf elapsed=1578s
+[40/450] loomy/qwen-3.8-max append_only_ledger pb305: correct=False exact=False conf=None 319.289s credits~0.0/inf elapsed=1601s
+[41/450] loomy/qwen-3.8-max append_only_ledger pb397: correct=False exact=False conf=None 331.515s credits~0.0/inf elapsed=1652s
+[42/450] workbuddy/deepseek-v4.1-flash append_only_ledger pb356: correct=False exact=False conf=0.7 154.939s credits~0.0/inf elapsed=1718s
+[43/450] workbuddy/deepseek-v4.1-flash versioned_state_ledger pb412: correct=False exact=False conf=None 142.12s credits~0.0/inf elapsed=1720s
+[44/450] workbuddy/deepseek-v4.1-flash versioned_state_ledger pb356: correct=False exact=False conf=0.7 32.465s credits~0.0/inf elapsed=1750s
+[45/450] workbuddy/deepseek-v4.1-flash direct_baseline pb410: correct=True exact=True conf=0.75 98.15s credits~0.0/inf elapsed=1849s
+[46/450] workbuddy/deepseek-v4.1-flash direct_baseline pb303: correct=False exact=False conf=None 144.389s credits~0.0/inf elapsed=1864s
+[47/450] loomy/qwen-3.8-max versioned_state_ledger pb305: correct=False exact=False conf=None 318.857s credits~0.0/inf elapsed=1920s
+[48/450] loomy/qwen-3.8-max versioned_state_ledger pb397: correct=False exact=False conf=None 336.344s credits~0.0/inf elapsed=1988s
+[49/450] workbuddy/deepseek-v4.1-flash append_only_ledger pb410: correct=False exact=False conf=None 143.429s credits~0.0/inf elapsed=1992s
+[50/450] workbuddy/deepseek-v4.1-flash append_only_ledger pb303: correct=False exact=False conf=None 146.946s credits~0.0/inf elapsed=2011s
+[51/450] workbuddy/deepseek-v4.1-flash versioned_state_ledger pb410: correct=False exact=False conf=None 142.156s credits~0.0/inf elapsed=2134s
+[52/450] workbuddy/deepseek-v4.1-flash versioned_state_ledger pb303: correct=False exact=False conf=None 140.64s credits~0.0/inf elapsed=2152s
+[53/450] loomy/qwen-3.8-max direct_baseline pb324: correct=False exact=False conf=None 322.691s credits~0.0/inf elapsed=2243s
+[54/450] workbuddy/deepseek-v4.1-flash direct_baseline pb314: correct=False exact=False conf=None 137.429s credits~0.0/inf elapsed=2272s
+[55/450] workbuddy/deepseek-v4.1-flash direct_baseline pb406: correct=False exact=False conf=None 143.133s credits~0.0/inf elapsed=2295s
+[56/450] autoclaw-cn/zai_glm-5.3-flash direct_baseline pb412: correct=False exact=False conf=0.55 1123.1s credits~0.0/inf elapsed=2298s
+[57/450] loomy/qwen-3.8-max direct_baseline pb406: correct=False exact=False conf=None 350.89s credits~0.0/inf elapsed=2339s
+[58/450] workbuddy/deepseek-v4.1-flash append_only_ledger pb314: correct=False exact=False conf=0.7 93.332s credits~0.0/inf elapsed=2365s
+[59/450] autoclaw-cn/zai_glm-5.3-flash append_only_ledger pb409: correct=False exact=False conf=None 1803.69s credits~0.0/inf elapsed=2403s
+[60/450] workbuddy/deepseek-v4.1-flash versioned_state_ledger pb314: correct=False exact=False conf=None 50.311s credits~0.0/inf elapsed=2415s
+[61/450] workbuddy/deepseek-v4.1-flash direct_baseline pb360: correct=False exact=False conf=None 4.622s credits~0.0/inf elapsed=2420s
+[62/450] workbuddy/deepseek-v4.1-flash append_only_ledger pb360: correct=False exact=False conf=None 4.418s credits~0.0/inf elapsed=2424s
+[63/450] workbuddy/deepseek-v4.1-flash versioned_state_ledger pb360: correct=False exact=False conf=None 4.719s credits~0.0/inf elapsed=2429s
+[64/450] workbuddy/deepseek-v4.1-flash append_only_ledger pb406: correct=False exact=False conf=None 138.225s credits~0.0/inf elapsed=2433s
+[65/450] workbuddy/deepseek-v4.1-flash direct_baseline pb421: correct=False exact=False conf=None 4.609s credits~0.0/inf elapsed=2434s
+[66/450] workbuddy/deepseek-v4.1-flash versioned_state_ledger pb406: correct=False exact=False conf=None 4.277s credits~0.0/inf elapsed=2437s
+[67/450] workbuddy/deepseek-v4.1-flash append_only_ledger pb421: correct=False exact=False conf=None 4.661s credits~0.0/inf elapsed=2438s
+[68/450] workbuddy/deepseek-v4.1-flash direct_baseline pb384: correct=False exact=False conf=None 4.643s credits~0.0/inf elapsed=2442s
+[69/450] workbuddy/deepseek-v4.1-flash versioned_state_ledger pb421: correct=False exact=False conf=None 4.537s credits~0.0/inf elapsed=2443s
+[70/450] workbuddy/deepseek-v4.1-flash append_only_ledger pb384: correct=False exact=False conf=None 4.488s credits~0.0/inf elapsed=2446s
+[71/450] workbuddy/deepseek-v4.1-flash direct_baseline pb386: correct=False exact=False conf=None 4.478s credits~0.0/inf elapsed=2447s
+[72/450] workbuddy/deepseek-v4.1-flash versioned_state_ledger pb384: correct=False exact=False conf=None 4.504s credits~0.0/inf elapsed=2451s
+[73/450] workbuddy/deepseek-v4.1-flash append_only_ledger pb386: correct=False exact=False conf=None 4.666s credits~0.0/inf elapsed=2452s
+[74/450] workbuddy/deepseek-v4.1-flash direct_baseline pb404: correct=False exact=False conf=None 4.655s credits~0.0/inf elapsed=2456s
+[75/450] workbuddy/deepseek-v4.1-flash versioned_state_ledger pb386: correct=False exact=False conf=None 4.674s credits~0.0/inf elapsed=2457s
+[76/450] workbuddy/deepseek-v4.1-flash append_only_ledger pb404: correct=False exact=False conf=None 4.415s credits~0.0/inf elapsed=2460s
+[77/450] workbuddy/deepseek-v4.1-flash direct_baseline pb445: correct=False exact=False conf=None 4.5s credits~0.0/inf elapsed=2461s
+[78/450] workbuddy/deepseek-v4.1-flash versioned_state_ledger pb404: correct=False exact=False conf=None 4.567s credits~0.0/inf elapsed=2465s
+[79/450] workbuddy/deepseek-v4.1-flash append_only_ledger pb445: correct=False exact=False conf=None 4.63s credits~0.0/inf elapsed=2466s
+[80/450] workbuddy/deepseek-v4.1-flash direct_baseline pb434: correct=False exact=False conf=None 4.467s credits~0.0/inf elapsed=2469s
+[81/450] workbuddy/deepseek-v4.1-flash versioned_state_ledger pb445: correct=False exact=False conf=None 4.581s credits~0.0/inf elapsed=2470s
+[82/450] workbuddy/deepseek-v4.1-flash append_only_ledger pb434: correct=False exact=False conf=None 5.157s credits~0.0/inf elapsed=2474s
+[83/450] workbuddy/deepseek-v4.1-flash direct_baseline pb448: correct=False exact=False conf=None 4.736s credits~0.0/inf elapsed=2475s
+[84/450] workbuddy/deepseek-v4.1-flash versioned_state_ledger pb434: correct=False exact=False conf=None 4.555s credits~0.0/inf elapsed=2479s
+[85/450] workbuddy/deepseek-v4.1-flash append_only_ledger pb448: correct=False exact=False conf=None 4.618s credits~0.0/inf elapsed=2480s
+[86/450] workbuddy/deepseek-v4.1-flash direct_baseline pb324: correct=False exact=False conf=None 4.483s credits~0.0/inf elapsed=2483s
+[87/450] workbuddy/deepseek-v4.1-flash versioned_state_ledger pb448: correct=False exact=False conf=None 4.76s credits~0.0/inf elapsed=2484s
+[88/450] workbuddy/deepseek-v4.1-flash append_only_ledger pb324: correct=False exact=False conf=None 4.572s credits~0.0/inf elapsed=2488s
+[89/450] workbuddy/deepseek-v4.1-flash direct_baseline pb392: correct=False exact=False conf=None 4.767s credits~0.0/inf elapsed=2489s
+[90/450] workbuddy/deepseek-v4.1-flash versioned_state_ledger pb324: correct=False exact=False conf=None 4.436s credits~0.0/inf elapsed=2492s
+[91/450] workbuddy/deepseek-v4.1-flash append_only_ledger pb392: correct=False exact=False conf=None 4.542s credits~0.0/inf elapsed=2494s
+[92/450] workbuddy/deepseek-v4.1-flash direct_baseline pb290: correct=False exact=False conf=None 4.608s credits~0.0/inf elapsed=2497s
+[93/450] workbuddy/deepseek-v4.1-flash versioned_state_ledger pb392: correct=False exact=False conf=None 4.386s credits~0.0/inf elapsed=2498s
+[94/450] workbuddy/deepseek-v4.1-flash append_only_ledger pb290: correct=False exact=False conf=None 4.469s credits~0.0/inf elapsed=2501s
+[95/450] workbuddy/deepseek-v4.1-flash direct_baseline pb397: correct=False exact=False conf=None 4.662s credits~0.0/inf elapsed=2503s
+[96/450] workbuddy/deepseek-v4.1-flash versioned_state_ledger pb290: correct=False exact=False conf=None 4.416s credits~0.0/inf elapsed=2506s
+[97/450] workbuddy/deepseek-v4.1-flash append_only_ledger pb397: correct=False exact=False conf=None 4.548s credits~0.0/inf elapsed=2507s
+[98/450] workbuddy/deepseek-v4.1-flash direct_baseline pb321: correct=False exact=False conf=None 4.787s credits~0.0/inf elapsed=2511s
+[99/450] workbuddy/deepseek-v4.1-flash versioned_state_ledger pb397: correct=False exact=False conf=None 4.438s credits~0.0/inf elapsed=2512s
+[100/450] workbuddy/deepseek-v4.1-flash append_only_ledger pb321: correct=False exact=False conf=None 5.03s credits~0.0/inf elapsed=2516s
+[101/450] workbuddy/deepseek-v4.1-flash versioned_state_ledger pb321: correct=False exact=False conf=None 8.56s credits~0.0/inf elapsed=2524s
+[102/450] loomy/qwen-3.8-max append_only_ledger pb324: correct=False exact=False conf=None 323.738s credits~0.0/inf elapsed=2567s

@@ -122,8 +122,9 @@ def run_one(task: dict[str, Any], method: str, model: str, mode: str,
     # Thinking models sometimes spend the whole budget on reasoning and return
     # an empty body.  A terser instruction (and a bigger budget) recovers most
     # of those cells; the remaining ones stay recorded as transport failures.
-    terse = "\n\nBe terse: output the single JSON object and nothing else."
-    for attempt in range(2):
+    terse = ("\n\nOutput only the JSON object. Do not explain, do not reason aloud, "
+             "do not add any other text.")
+    for attempt in range(3):
         try:
             if images:
                 parts = build_multimodal_parts(method, image_parts=images, **kwargs)
@@ -179,6 +180,11 @@ def main() -> None:
     parser.add_argument("--credit-budget", type=float, default=2000.0,
                         help="stop the run after this many estimated MiniMax credits "
                              "(0 = unlimited); every finished answer is already on disk")
+    parser.add_argument("--rerun-methods", default="",
+                        help="comma-separated methods whose existing answers must be "
+                             "discarded and re-run (the old rows are backed up next to "
+                             "the answers file); use when the shared memory structure "
+                             "changed, e.g. the absent-state semantics fix")
     parser.add_argument("--model-alias", default="",
                         help="report every route under one model label (the actual route is "
                              "kept in the row as actual_model); use when a run has to switch "
@@ -244,6 +250,23 @@ def main() -> None:
                   for model in models},
     }
     write_json(output / f"run_manifest_{args.mode}.json", manifest)
+
+    rerun = {m.strip() for m in args.rerun_methods.split(",") if m.strip()}
+    if rerun:
+        unknown = rerun - set(methods)
+        if unknown:
+            parser.error(f"--rerun-methods must be a subset of --methods: {sorted(unknown)}")
+        original = load_jsonl(answers_path)
+        backup = answers_path.with_name(answers_path.stem + "_prerun.jsonl")
+        with backup.open("w", encoding="utf-8") as handle:
+            for row in original:
+                handle.write(json.dumps(row, ensure_ascii=False, separators=(",", ":")) + "\n")
+        kept = [row for row in original if row.get("method") not in rerun]
+        with answers_path.open("w", encoding="utf-8") as handle:
+            for row in kept:
+                handle.write(json.dumps(row, ensure_ascii=False, separators=(",", ":")) + "\n")
+        print(f"Re-running {sorted(rerun)}: dropped {len(original) - len(kept)} old row(s), "
+              f"backup at {backup.name}", flush=True)
 
     done = {(label_of.get(row["model"], row["model"]), row["method"], row["task_id"],
              row["mode"]) for row in load_jsonl(answers_path)}

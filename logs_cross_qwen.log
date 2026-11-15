@@ -1,0 +1,13 @@
+mode=text models={'loomy/qwen3.8-flash': 50} 16 task bundle(s) / 150 request(s) to do; MiniMax credits left: 5086.86
+[1/150] loomy/qwen3.8-flash direct_baseline pb436: correct=True exact=True conf=0.88 10.871s credits~0.0/inf elapsed=11s
+[2/150] loomy/qwen3.8-flash append_only_ledger pb436: correct=True exact=True conf=0.93 9.894s credits~0.0/inf elapsed=21s
+[3/150] loomy/qwen3.8-flash versioned_state_ledger pb436: correct=True exact=True conf=0.95 15.213s credits~0.0/inf elapsed=36s
+[4/150] loomy/qwen3.8-flash direct_baseline pb327: correct=False exact=False conf=0.75 128.349s credits~0.0/inf elapsed=128s
+[5/150] loomy/qwen3.8-flash direct_baseline pb410: correct=True exact=True conf=0.62 224.159s credits~0.0/inf elapsed=260s
+[6/150] loomy/qwen3.8-flash append_only_ledger pb327: correct=False exact=False conf=0.72 383.744s credits~0.0/inf elapsed=512s
+[7/150] loomy/qwen3.8-flash versioned_state_ledger pb327: correct=False exact=False conf=0.6 91.838s credits~0.0/inf elapsed=604s
+[8/150] loomy/qwen3.8-flash direct_baseline pb392: correct=False exact=False conf=0.55 128.638s credits~0.0/inf elapsed=733s
+[9/150] loomy/qwen3.8-flash append_only_ledger pb410: correct=False exact=False conf=0.62 594.7s credits~0.0/inf elapsed=855s
+[10/150] loomy/qwen3.8-flash append_only_ledger pb392: correct=False exact=False conf=0.62 235.908s credits~0.0/inf elapsed=968s
+[11/150] loomy/qwen3.8-flash versioned_state_ledger pb410: correct=True exact=True conf=0.62 128.408s credits~0.0/inf elapsed=983s
+[12/150] loomy/qwen3.8-flash versioned_state_ledger pb392: correct=False exact=False conf=0.45 200.947s credits~0.0/inf elapsed=1169s

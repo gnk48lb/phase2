@@ -1,0 +1,8 @@
+mode=text models={'loomy/qwen3.8-flash': 50, 'autoclaw-cn/zai_glm-5.3-flash': 50} 27 task bundle(s) / 300 request(s) to do; MiniMax credits left: 5340.25
+[1/300] loomy/qwen3.8-flash direct_baseline pb410: correct=True exact=True conf=0.38 235.171s credits~0.0/inf elapsed=235s
+[2/300] autoclaw-cn/zai_glm-5.3-flash direct_baseline pb386: correct=False exact=False conf=0.65 247.027s credits~0.0/inf elapsed=247s
+[3/300] loomy/qwen3.8-flash direct_baseline pb302: correct=True exact=True conf=0.65 250.251s credits~0.0/inf elapsed=250s
+[4/300] autoclaw-cn/zai_glm-5.3-flash direct_baseline pb384: correct=False exact=False conf=0.68 280.913s credits~0.0/inf elapsed=281s
+[5/300] loomy/qwen3.8-flash append_only_ledger pb410: correct=True exact=True conf=0.68 117.333s credits~0.0/inf elapsed=353s
+[6/300] loomy/qwen3.8-flash append_only_ledger pb302: correct=True exact=True conf=0.85 213.163s credits~0.0/inf elapsed=463s
+[7/300] autoclaw-cn/zai_glm-5.3-flash append_only_ledger pb386: correct=False exact=False conf=0.75 339.361s credits~0.0/inf elapsed=586s

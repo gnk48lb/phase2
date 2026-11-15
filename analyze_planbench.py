@@ -39,6 +39,24 @@ METHOD_LABEL = {"direct_baseline": "direct baseline",
                 "versioned_state_ledger_flat": "versioned ledger (flat render, control)"}
 METHOD_ORDER = ("direct_baseline", "append_only_ledger", "versioned_state_ledger",
                 "versioned_state_ledger_flat")
+
+# Plan-Bench's Temporal Reasoning mixes two very different mechanisms:
+# chronologically ordered state evolution (the versioned ledger's home turf)
+# and shuffled / cumulative tasks where the frames are deliberately out of
+# order or must be de-duplicated.
+CHRONOLOGICAL_SUBSETS = ("Progress Tracking", "Motion Retrieval")          # n = 80
+SHUFFLED_SUBSETS = ("Temporal Ordering", "Instruction Alignment",
+                    "Persistent Counting")                                  # n = 130
+SUBSET_GROUPS = {
+    "all": None,
+    "chronological_state_tracking": CHRONOLOGICAL_SUBSETS,
+    "shuffled_cumulative": SHUFFLED_SUBSETS,
+}
+GROUP_LABEL = {
+    "all": "All 210",
+    "chronological_state_tracking": "Chronological State-Tracking (n=80)",
+    "shuffled_cumulative": "Shuffled / Cumulative (n=130)",
+}
 INK, INK2, MUTED = "#0b0b0b", "#52514e", "#898781"
 GRID, BASELINE, SURFACE = "#e1e0d9", "#c3c2b7", "#fcfcfb"
 
@@ -107,6 +125,24 @@ def bootstrap_diff(pairs: list[tuple[bool, bool]], iterations: int = 2000,
     return (point, low, high)
 
 
+def dedup_rows(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """One row per (model, method, task_id, mode).
+
+    ``answers.jsonl`` is append-only and a repaired cell may be re-run, so a
+    cell can appear several times.  The newest row that actually produced an
+    answer wins; a failed retry never erases an earlier real answer.
+    """
+    latest: dict[tuple[Any, ...], dict[str, Any]] = {}
+    for row in rows:
+        key = (row.get("model"), row.get("method"), row.get("task_id"), row.get("mode"))
+        previous = latest.get(key)
+        if previous is None:
+            latest[key] = row
+        elif is_failure(previous) and not is_failure(row):
+            latest[key] = row
+    return list(latest.values())
+
+
 def load_runs(results_dir: Path) -> dict[str, dict[str, Any]]:
     """One entry per result directory that contains answers.jsonl.
 
@@ -121,16 +157,7 @@ def load_runs(results_dir: Path) -> dict[str, dict[str, Any]]:
         rows = load_jsonl(path)
         if not rows:
             continue
-        latest: dict[tuple[Any, ...], dict[str, Any]] = {}
-        for row in rows:
-            key = (row.get("model"), row.get("method"), row.get("task_id"), row.get("mode"))
-            previous = latest.get(key)
-            if previous is None:
-                latest[key] = row
-            elif is_failure(previous) and not is_failure(row):
-                # A later failed retry must not erase an earlier real answer.
-                latest[key] = row
-        rows = list(latest.values())
+        rows = dedup_rows(rows)
         name = path.parent.name
         models = sorted({row["model"] for row in rows})
         modes = sorted({row.get("mode", "?") for row in rows})
@@ -341,6 +368,7 @@ def main() -> None:
             order.append(name)
 
     tables: dict[str, Any] = {}
+    group_tables: dict[str, Any] = {}
     csv_rows: list[dict[str, Any]] = []
     mcnemar_rows: list[dict[str, Any]] = []
     for name in order:
@@ -360,15 +388,24 @@ def main() -> None:
                                      "method": method, "scope": scope,
                                      **{k: cell[k] for k in ("n", "correct", "accuracy",
                                                              "exact_rate", "ci_low", "ci_high")}})
-            for method_a, method_b in (("versioned_state_ledger", "append_only_ledger"),
-                                       ("versioned_state_ledger", "direct_baseline"),
-                                       ("append_only_ledger", "direct_baseline"),
-                                       ("versioned_state_ledger_flat", "versioned_state_ledger"),
-                                       ("versioned_state_ledger_flat", "append_only_ledger")):
-                comparison = paired_comparison(rows, method_a, method_b)
-                if comparison.get("n"):
-                    comparison.update({"run": name, "model": model})
-                    mcnemar_rows.append(comparison)
+            for group_name, subsets in SUBSET_GROUPS.items():
+                group_rows = (rows if subsets is None
+                              else [row for row in rows if row["subset"] in subsets])
+                if not group_rows:
+                    continue
+                group_tables[f"{name}|{model}|{group_name}"] = method_table(group_rows)
+                for method_a, method_b in (("versioned_state_ledger", "append_only_ledger"),
+                                           ("versioned_state_ledger", "direct_baseline"),
+                                           ("append_only_ledger", "direct_baseline"),
+                                           ("versioned_state_ledger_flat",
+                                            "versioned_state_ledger"),
+                                           ("versioned_state_ledger_flat",
+                                            "append_only_ledger")):
+                    comparison = paired_comparison(group_rows, method_a, method_b)
+                    if comparison.get("n"):
+                        comparison.update({"run": name, "model": model,
+                                           "subset_group": group_name})
+                        mcnemar_rows.append(comparison)
 
     figure_ablation(runs, args.output_dir / "ablation_accuracy.png", order)
 
@@ -394,12 +431,13 @@ def main() -> None:
             writer.writeheader()
             writer.writerows(mcnemar_rows)
 
-    write_summary(args.output_dir, tables, mcnemar_rows, gate, runs)
+    write_summary(args.output_dir, tables, mcnemar_rows, gate, runs, group_tables)
     print(f"wrote {args.output_dir/'planbench_summary.md'} and both figures", flush=True)
 
 
 def write_summary(output: Path, tables: dict[str, Any], mcnemar_rows: list[dict[str, Any]],
-                  gate: dict[str, Any] | None, runs: dict[str, dict[str, Any]]) -> None:
+                  gate: dict[str, Any] | None, runs: dict[str, dict[str, Any]],
+                  group_tables: dict[str, Any] | None = None) -> None:
     lines: list[str] = []
     add = lines.append
     add("# Plan-Bench 第二阶段外部验证实验报告")
@@ -427,11 +465,21 @@ def write_summary(output: Path, tables: dict[str, Any], mcnemar_rows: list[dict[
             f"`append_only` {append['accuracy_clean']:.1%} > `direct` "
             f"{direct['accuracy_clean']:.1%} > `versioned` {text['accuracy_clean']:.1%} "
             f"≈ `versioned_flat` {flat['accuracy_clean']:.1%}。")
+        def pval(method_a: str, method_b: str) -> tuple[float, int]:
+            for row in mcnemar_rows:
+                if (row["run"].startswith("txt_minimax") and row.get("subset_group") == "all"
+                        and row["method_a"] == method_a and row["method_b"] == method_b):
+                    return row["mcnemar_p"], row["n"]
+            return float("nan"), 0
+
+        p_va, n_va = pval("versioned_state_ledger", "append_only_ledger")
+        p_fa, _ = pval("versioned_state_ledger_flat", "append_only_ledger")
+        p_fv, _ = pval("versioned_state_ledger_flat", "versioned_state_ledger")
         add(f"   版本覆盖账本比追加式日志低 "
             f"{(append['accuracy_clean'] - text['accuracy_clean']) * 100:.1f} pp"
-            f"（McNemar p=0.0115）；紧凑渲染对照臂同样低 "
+            f"（n={n_va}，McNemar p={p_va:.4g}）；紧凑渲染对照臂同样低 "
             f"{(append['accuracy_clean'] - flat['accuracy_clean']) * 100:.1f} pp"
-            f"（p=0.0008），而与长版本账本**无统计差异**（p=0.74）——"
+            f"（p={p_fa:.4g}），而与长版本账本**无统计差异**（p={p_fv:.4g}）——"
             f"**说明差距来自「覆盖/失效旧状态」机制本身，而不是提示词长度**。")
     if mm_direct:
         mm_tasks = max(value["n_tasks"] for key, value in tables.items()
@@ -449,10 +497,43 @@ def write_summary(output: Path, tables: dict[str, Any], mcnemar_rows: list[dict[
             f"核验+重答 {gate['always_verify_accuracy']:.1%}；风险分判别力很弱"
             f"（AUC 见 §4）。**二采样本身就会掉点**（只重问对照），"
             f"所以「多花一次感知」必须先解决风险分标定问题才可能划算。")
-    add("4. **跨模型 50 条对照只能作方向性参考**：路由在实验期间退化"
-        "（deepseek 429、AutoClaw 单条 800s+），修复后各模型的有效样本只剩 "
-        "24–47 条，且方向不一致（qwen 上版本账本反而更好），"
-        "不足以支撑「跨模型一致性」的结论。")
+    cross_rows = [r for r in mcnemar_rows
+                  if r["run"].startswith(("txt_cross", "txt_gemini"))
+                  and r.get("subset_group") == "all"
+                  and r["method_a"] == "versioned_state_ledger"
+                  and r["method_b"] == "append_only_ledger"]
+    if cross_rows:
+        agree = sum(1 for r in cross_rows if r["diff_pp"] < 0)
+        detail = "；".join(
+            f"{r['model'].split('/')[-1]} {r['diff_pp']:+.1f} pp（n={r['n']}, p={r['mcnemar_p']:.2f}）"
+            for r in cross_rows)
+        add(f"4. **跨模型 50 条对照：方向一致但不显著**。{agree}/{len(cross_rows)} 个模型上"
+            f"版本账本不优于追加式日志——{detail}。"
+            f"每列有效配对只有 25–42 对，**统计功效不足（p≥0.25）**，"
+            f"因此只能作方向性参考，不能声称「跨模型高度一致」。"
+            f"（上游路由在实验期间退化：deepseek 额度耗尽、AutoClaw/Loomy 慢速或空响应、"
+            f"OpenCode Zen Free 90%+ 限流。）")
+    if group_tables:
+        text_key = next((k for k in group_tables
+                         if k.startswith("txt_minimax")
+                         and k.endswith("chronological_state_tracking")), None)
+        if text_key:
+            base = text_key.rsplit("|", 1)[0]
+            chrono = group_tables[text_key]
+            shuffled = group_tables.get(base + "|shuffled_cumulative", {})
+            ch = {m: v["overall"]["accuracy_clean"] for m, v in chrono.items()}
+            sh = {m: v["overall"]["accuracy_clean"] for m, v in shuffled.items()}
+            if ch and sh:
+                add(f"5. **机制适用域分层（文本条件）**：正序状态演进 80 题上三者接近——"
+                    f"`append` {ch.get('append_only_ledger', float('nan')):.1%} ≈ "
+                    f"`direct` {ch.get('direct_baseline', float('nan')):.1%} ≈ "
+                    f"`versioned` {ch.get('versioned_state_ledger', float('nan')):.1%}；"
+                    f"乱序重排 / 跨视角去重 130 题上差距被放大——"
+                    f"`direct` {sh.get('direct_baseline', float('nan')):.1%} vs "
+                    f"`versioned` {sh.get('versioned_state_ledger', float('nan')):.1%} / "
+                    f"`append` {sh.get('append_only_ledger', float('nan')):.1%}。"
+                    f"**版本账本在它本该占优的「正序状态演进」上并没有优势，"
+                    f"劣势主要出现在帧序被破坏的任务上。**")
     add("")
     add("## 1. 实验设置")
     add("")
@@ -497,18 +578,42 @@ def write_summary(output: Path, tables: dict[str, Any], mcnemar_rows: list[dict[
                 cells.append(f"{cell['accuracy_clean']:.0%} (n={cell['n_clean']})")
             add(f"| `{method}` | " + " | ".join(cells) + " |")
         add("")
-    if mcnemar_rows:
-        add("## 3. 配对显著性（McNemar 精确检验 + 配对 Bootstrap）")
+    if group_tables:
+        add("## 3. 机制适用域分层（各记忆组织方式的适用边界）")
         add("")
-        add("| 运行 | 模型 | 对比 | n | 差值 (pp) | 95% CI (pp) | McNemar p |")
-        add("|---|---|---|---|---|---|---|")
+        add("Plan-Bench 的 Temporal Reasoning 混了两种机制完全不同的子任务："
+            "**正序状态演进**（Progress Tracking 30 + Motion Retrieval 50 = 80 题，"
+            "帧按真实时间正序排列，考察实体状态与进度的动态更新，是版本覆盖账本的目标适用域）；"
+            "**乱序重排与跨视角去重**（Temporal Ordering 40 + Instruction Alignment 40 + "
+            "Persistent Counting 50 = 130 题，帧被打乱或需要跨视角去重计数）。")
+        add("")
+        for key, stats in group_tables.items():
+            if key.endswith("|all"):
+                continue
+            run, model, group = key.split("|", 2)
+            add(f"### {run} — {model} · {GROUP_LABEL[group]}")
+            add("")
+            add("| 方法 | Clean 准确率 | 95% CI | 有效样本 |")
+            add("|---|---|---|---|")
+            for method, method_stats in stats.items():
+                overall = method_stats["overall"]
+                add(f"| `{method}` | {overall['accuracy_clean']:.1%} | "
+                    f"[{overall['ci_low_clean']:.1%}, {overall['ci_high_clean']:.1%}] | "
+                    f"{overall['n_clean']} |")
+            add("")
+    if mcnemar_rows:
+        add("## 4. 配对显著性（McNemar 精确检验 + 配对 Bootstrap）")
+        add("")
+        add("| 运行 | 模型 | 子集分组 | 对比 | n | 差值 (pp) | 95% CI (pp) | McNemar p |")
+        add("|---|---|---|---|---|---|---|---|")
         for row in mcnemar_rows:
-            add(f"| {row['run']} | {row['model']} | `{row['method_a']}` vs `{row['method_b']}` | "
+            add(f"| {row['run']} | {row['model']} | {GROUP_LABEL[row.get('subset_group', 'all')]} | "
+                f"`{row['method_a']}` vs `{row['method_b']}` | "
                 f"{row['n']} | {row['diff_pp']:+.1f} | "
                 f"[{row['ci_low_pp']:+.1f}, {row['ci_high_pp']:+.1f}] | {row['mcnemar_p']:.4g} |")
         add("")
     if gate:
-        add("## 4. 代码级风险门控（Staleness Risk Score）")
+        add("## 5. 代码级风险门控（Staleness Risk Score）")
         add("")
         add("- 风险分由 Python 从 `versioned_state_ledger` 计算，不交给模型："
             "`0.45 × 过期跨度 + 0.30 × 冲突次数 + 0.25 × (1 − 模型置信度)`。")
@@ -543,14 +648,14 @@ def write_summary(output: Path, tables: dict[str, Any], mcnemar_rows: list[dict[
                 add(f"| {row['tau']:.2f} | {row['avg_extra_perception_cost']:.2f} | "
                     f"{row['accuracy']:.1%} | {row.get('control_accuracy', float('nan')):.1%} |")
         add("")
-    add("## 5. 图")
+    add("## 6. 图")
     add("")
     add("- `results/ablation_accuracy.png`：三组方法在各子任务上的准确率"
         "（MiniMax 全量 + 50 条跨模型对照），误差棒为 95% Wilson 区间。")
     add("- `results/risk_cost_tradeoff.png`：代码级风险门控下"
         "「平均额外核验成本 vs 任务准确率」曲线。")
     add("")
-    add("## 6. 覆盖度与口径说明")
+    add("## 7. 覆盖度与口径说明")
     add("")
     add("> **口径更正**：早期报告（Antigravity 生成于 "
         "`~/.gemini/antigravity/brain/33b00b10-.../planbench_phase2_report.md`）中的跨模型数字"
@@ -563,7 +668,10 @@ def write_summary(output: Path, tables: dict[str, Any], mcnemar_rows: list[dict[
         "mm_minimax": "多模态：`minimax-code` 账号池额度耗尽（429）后中断，未覆盖全部 210 条；"
                       "失败率在三组间分布均匀（40%/44%/45%），不偏袒任何一组。",
         "txt_minimax": "文本全量，四臂齐备（含紧凑渲染对照臂）。",
-        "txt_cross": "50 条分层抽样（与所有跨模型共用同一批任务）。",
+        "txt_cross": "50 条分层抽样（与所有跨模型共用同一批任务）。"
+                      "实测 `opencode-zen-free/*` 三条免费路由 **90%+ 请求被限流**"
+                      "（HTTP 429，每模型仅 ~15/160 成功），无法作为对照；"
+                      "WorkBuddy 的 deepseek 额度耗尽，AutoClaw/Loomy 路由单条 140–840s。",
         "txt_gemini": "同一批 50 条任务，但由 Antigravity 的 `agy` CLI 承载："
                       "提示词经 agent 外壳包裹，与 Magpie 直连并非逐字节一致，"
                       "作为独立方向性对照，不参与严格的同构假设检验。",
@@ -575,7 +683,7 @@ def write_summary(output: Path, tables: dict[str, Any], mcnemar_rows: list[dict[
         add(f"| {run} | {model} | {value['n_tasks']} | {cells} | {failures} | "
             f"{notes.get(run, '')} |")
     add("")
-    add("## 7. 已知局限")
+    add("## 8. 已知局限")
     add("")
     add("- 跨帧实体身份由感知模型给出，命名抖动会让部分实体裂成多个记录，"
         "低估版本账本的冲突信号（对三组方法同向影响，不改变比较方向）。")

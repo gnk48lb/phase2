@@ -4,21 +4,22 @@
     "minimax-code-global/MiniMax-M3.1-Flash"
   ],
   "methods": [
+    "versioned_state_ledger",
     "versioned_state_ledger_flat"
   ],
-  "completed_calls": 210,
+  "completed_calls": 420,
   "remaining_bundles": 0,
   "remaining_task_ids": [],
   "credits": {
-    "requests": 205,
-    "tokens_in": 387266,
-    "tokens_out": 247675,
-    "estimated_credits_spent": 204.45,
-    "budget_credits": 300.0,
+    "requests": 413,
+    "tokens_in": 1110418,
+    "tokens_out": 533170,
+    "estimated_credits_spent": 529.24,
+    "budget_credits": 700.0,
     "reserve_credits": 2000.0,
-    "live_balance_before": 2361.02,
-    "live_balance_now": 1987.24
+    "live_balance_before": 10340.52,
+    "live_balance_now": 9297.16
   },
   "stopped_by_credit_guard": false,
-  "time": "2026-11-14T08:03:04.741043+00:00"
+  "time": "2026-11-15T01:12:25.363228+00:00"
 }

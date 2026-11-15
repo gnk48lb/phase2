@@ -197,3 +197,118 @@ python -m unittest discover -s tests -v
 > 并用**代码级 Staleness Risk Score**（不依赖模型自评）扫描额外感知成本的代价–收益曲线。
 > 初步结果：**追加式日志优于版本覆盖账本**，且**当前风险分无法区分对错**，
 > 说明「状态组织」之外还需要针对错误的**标定**，这正是下一阶段验证器（带拒识）要解决的问题。
+## 8. 2026-11-15 第二轮：Bug 修复 + 续跑状态
+
+### 8.1 已修复的 4 个 Bug（全部有回归测试，27 个单测全绿）
+
+| Bug | 位置 | 修复 | 证据 |
+|---|---|---|---|
+| `frame_summaries` 被清空 | `memory_ledger.apply_verified_observation` | 深拷贝 `clone.frame_summaries`；核验帧的摘要在**原位追加**标记，其他帧不动；核验帧不再被当作比 `current_frame` 更新的帧 | 旧实现下 207 条核验后的账本只剩 1 条摘要 |
+| `event:*` / `activity` 污染门控目标 | `memory_ledger.staleness_risk`、`gate_simulation.pick_target` | 新增 `is_trackable_entity()`，只保留物理实体；`pick_target` 改为优先「有冲突 → 冲突数 → 过期度」 | **修复前 207 条里 124 条（60%）选中了 event:/activity**（必然核验出 "not visible"），修复后 207/207 为物理实体 |
+| 门控样本未按 task 去重 | `gate_simulation` 读 `answers.jsonl` | 复用 `analyze_planbench.dedup_rows()`：同一 cell 优先保留「有答案的最新行」 | 215 条 → 201 条（= 唯一 task 数） |
+| 视角移出抹掉最后已知状态 | `memory_ledger.VersionedLedger._apply` | `absent` 时保留 `last_known_state` / `last_known_location`，标 `visibility=out_of_view`，**不计入冲突** | 76% 的任务的版本账本内容因此改变 → 版本臂必须重跑 |
+
+另外修了一个**解析 bug**：部分 provider（如 Antigravity 上的 Claude）会把整个 schema JSON
+塞进 `answer` 字段里，导致预测被当成原始字符串判错。`prompts._unwrap_answer()` 现在会拆开嵌套 JSON；
+`python regrade.py` 可以**离线**重新解析+重新评分全部历史结果（不花任何积分）。
+
+### 8.2 账本语义变更带来的重跑（已做/待做）
+
+`absent` 语义修复改变了 76% 任务的版本账本内容，因此**版本臂必须用新语义重跑**，
+否则账本机制在实验中途变了。已完成：
+
+- `results/txt_minimax`：`versioned_state_ledger` + `versioned_state_ledger_flat` 已重跑（529 credits）。
+  **`direct_baseline` 与 `append_only_ledger` 两臂 210 条原封未动**（红线要求）。
+- `results/txt_gemini`：`versioned` + `versioned_flat` 已用 Antigravity 的 Gemini 重跑（0 MiniMax 消耗）。
+- 旧答案保留在 `answers_prefix_ledgerfix.jsonl` 里可审计。
+
+### 8.3 待续跑（命令都已就绪）
+
+```bash
+cd D:/code/ClaudeCode/phase2_planbench
+# ① 多模态：版本臂剩余约 90 个 cell + direct/append 剩余约 35 个 cell
+python run_planbench.py --mode multimodal --models minimax-code-global/MiniMax-M3.1-Flash   --model-alias minimax-code-global/MiniMax-M3.1-Flash   --methods direct_baseline,append_only_ledger,versioned_state_ledger   --output-dir results/mm_minimax --credit-budget 1500 --credit-reserve 2000
+
+# ② 跨模型：deepseek 额度已耗尽；GLM/Loomy 路由极慢（单条 140–840s）
+python repair_run.py results/txt_cross/answers.jsonl
+python run_planbench.py --mode text --models cross --subset-file cache/cross_subset_50.json   --methods direct_baseline,append_only_ledger,versioned_state_ledger   --output-dir results/txt_cross --credit-budget 0 --credit-reserve 0
+
+# ③ 出图出报告（离线，不消耗积分）
+python regrade.py && python analyze_planbench.py --results results --output-dir results
+```
+
+**如果 OpenCode 的模型被加进 Magpie**：把它的模型 id 加到 `common.CROSS_CHECK_CANDIDATES`，
+然后用同一条 ② 的命令（`--models cross` 会自动挑出现在目录里的可用模型）跑同一批 50 条任务即可。
+
+### 8.4 修复后的门控结果（201 条唯一样本）
+
+| 口径 | 修复前（215 条，污染目标） | 修复后（201 条，物理实体目标） |
+|---|---|---|
+| 未门控 base | 31.2% | **30.3%** |
+| 只重问（无额外感知） | 27.0% | **28.9%** |
+| 核验 + 重答 | 25.6% | **29.4%** |
+
+修复前「核验」比「只重问」还差（核验纯属噪声）；修复后核验**首次略高于**只重问对照（+0.5 pp），
+说明额外感知开始产生正向价值，但幅度仍远不足以支撑门控策略。
+
+### 8.5 最终状态（2026-11-15 收尾）
+
+| 条件 | 覆盖 | direct | append-only | versioned | versioned-flat |
+|---|---|---|---|---|---|
+| 文本 210 题（MiniMax） | clean 199–210 | 35.2% | **39.2%** | 30.3% | 30.2% |
+| 端到端多模态 210 题（MiniMax） | clean 200–206 | **58.4%** | 44.7% | 45.5% | — |
+| 文本 50 条（Antigravity Gemini 3.8 Flash） | clean 48–50 | **38.0%** | 36.0% | 33.3% | 32.0% |
+| 文本 50 条（AutoClaw GLM-5.3-Flash） | clean 43–48 | **43.8%** | 42.6% | 39.5% | — |
+| 文本 50 条（Loomy Qwen-3.8-Max） | clean 23–25 | 39.1% | 32.0% | **41.7%** | — |
+| 文本 50 条（WorkBuddy DeepSeek-V4.1-Flash） | clean 27–29 | 35.7% | **44.8%** | 37.0% | — |
+
+配对 McNemar：文本 `versioned` vs `append` −9.0 pp（p=0.0021）、`flat` vs `append` −9.6 pp（p=0.0013）、
+`flat` vs `versioned` −1.0 pp（p=0.85，**长度混淆排除**）；多模态 `append` vs `direct` −13.0 pp（p=0.0003）、
+`versioned` vs `direct` −12.3 pp（p=0.0007）、`versioned` vs `append` +0.5 pp（p=1.0）。
+
+门控（201 条）：未门控 30.3% → 只重问 28.9% → 核验+重答 29.4%；风险分 **AUC=0.480**（低于随机），
+其中过期跨度 0.597、冲突次数 **0.372（反号）**、置信度 0.515。
+
+**仍未跑完的只有跨模型那一格**（deepseek 额度耗尽、AutoClaw/Loomy 路由单条 140–840s、
+OpenCode Zen Free 三条路由 **90%+ 限流失败**）。它只影响 §2 的第 4 条结论（跨模型一致性），
+主结论（文本 + 多模态两个条件）已完整。
+
+### 8.6 跨模型这一格的路由实测（2026-11-15）
+
+「跨模型对照」最终卡在**上游路由**而不是我们的代码：
+
+| 路由 | 状态 | 原因 |
+|---|---|---|
+| `antigravity/gemini-3.8-flash`（agy CLI） | ✅ 50 题 × 4 臂，0 失败 | Antigravity 自带额度 |
+| `autoclaw-cn/zai_glm-5.3-flash` + `autoclaw/zai_glm-5.3-flash` | ✅ 合并后 150/150 | 同一模型的两个账号池（`autoclaw/` 另有 3 个账号，各 1.3–2 万积分） |
+| `loomy/qwen3.8-flash` | 🔄 补到 109/150 | 单条 290–530s |
+| `workbuddy/deepseek-v4.1-flash` | ❌ 84/150 | 额度耗尽（HTTP 429） |
+| `autoclaw-cn/zai_glm-5.3-flash`（原慢路由） | — | 单条 1471s，被上游排队 |
+| `loomy/qwen-3.8-max` | ❌ 72/150 | 同上，1470s 级长尾 |
+| `loomy/GLM-5.3-Flash`、`loomy/deepseek-v4-flash-1017` | ❌ 88 / 93 | **40% 空响应**（思考模型耗尽预算） |
+| `opencode-zen-free/*`（三条） | ❌ 90–93% 失败 | HTTP 429 限流 |
+
+因此代码里做了两处针对性修复：
+
+1. `common.MagpieMultimodalClient.complete_robust()` 与 `run_planbench` 的**三档重试阶梯**：
+   第 2、3 档不是单纯加预算，而是加「只输出 JSON、不要解释、不要出声思考」的硬提示——
+   这正是 40% 空响应的解药（原先 2 档会把预算翻到 16000 仍失败）。
+2. 跨模型同一模型可以**跨账号池合并**（GLM 用 `autoclaw-cn` 与 `autoclaw` 两条路由拼成完整一列，
+   每行保留 `actual_model`）。
+
+### 8.7 跨模型最终矩阵（2026-11-15 收尾）
+
+| 模型 | 覆盖题数 | direct | append-only | versioned | versioned-flat |
+|---|---|---|---|---|---|
+| GLM-5.3-Flash（`autoclaw-cn` + `autoclaw` 两池合并） | 50 | **43.8%** | 42.6% | 39.5% | — |
+| Qwen3.8-Flash（`loomy`） | 43 | 39.5% | **41.0%** | 33.3% | — |
+| DeepSeek-V4.1-Flash（`workbuddy`，额度受限） | 31 | 35.7% | **44.8%** | 37.0% | — |
+| Gemini-3.8-Flash（Antigravity `agy` CLI） | 50 | **38.0%** | 36.0% | 33.3% | 34.0% |
+
+版本账本 vs 追加式：Qwen −8.6 pp（p=0.25）、DeepSeek −8.0 pp（p=0.50）、
+GLM +0.0 pp（p=1.00）、Gemini −2.1 pp（p=1.00）——**方向 3/4 一致，但每列有效配对
+只有 25–48 对，p≥0.25，统计功效不足**，只能作方向性参考。
+
+被弃用的路由（数据留档在 `results/txt_cross/answers_all_routes.jsonl`）：
+`loomy/GLM-5.3-Flash`（88/150，40% 空响应）、`loomy/deepseek-v4-flash-1017`（93/150，同）、
+`loomy/qwen-3.8-max`（72/150，单条 1470s 长尾）——都是同族的重复/劣化路由。

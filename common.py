@@ -41,7 +41,12 @@ UNLIMITED_MODEL = "minimax-code-global/MiniMax-M3.1-Flash"
 # samples, never used for a full sweep.  Ordered by observed reliability and
 # latency on a ledger-sized prompt (2026-11-14): deepseek ~3s, glm ~8s,
 # qwen ~19s; codearts/trae were measured far slower (55-105s) and are left out.
+# The opencode-zen-free routes are free but capped at concurrency 2 by the
+# provider (measured 0.8-2.1s per request on 2026-11-15).
 CROSS_CHECK_CANDIDATES = (
+    "opencode-zen-free/deepseek-v4.1-flash-free",
+    "opencode-zen-free/glm-5.3-flash-free",
+    "opencode-zen-free/minimax-m3.1-flash-free",
     "workbuddy/deepseek-v4.1-flash",
     "autoclaw-cn/zai_glm-5.3-flash",
     "loomy/qwen-3.8-max",
@@ -227,6 +232,30 @@ class MagpieMultimodalClient(MagpieClient):
                 if attempt < self.max_retries:
                     time.sleep((2 ** attempt) * 0.5 + random.random() * 0.2)
         raise RuntimeError(f"Magpie multimodal request failed after {self.max_retries + 1} attempts: {last_error}")
+
+    def complete_robust(self, model: str, system: str, user: str,
+                        max_tokens: int = 4000, attempts: int = 3) -> tuple[str, dict[str, Any]]:
+        """Text completion with an escalating anti-rumination retry ladder.
+
+        Reasoning-heavy routes (GLM-5.3-Flash, DeepSeek-V4-Flash) sometimes spend
+        the whole token budget thinking and return an empty body -- measured at
+        ~40% of calls on the Loomy routes.  The later attempts add an explicit
+        "output only the JSON object" nudge instead of merely raising the
+        budget, which is what actually recovers those cells.
+        """
+        last_error: str | None = None
+        for attempt in range(attempts):
+            suffix = "" if attempt == 0 else (
+                "\n\nOutput only the JSON object. Do not explain, do not reason aloud, "
+                "do not add any other text.")
+            try:
+                text, meta = self.complete(model, system, user + suffix)
+                if text.strip():
+                    return text, meta
+                last_error = "empty model response"
+            except Exception as exc:  # noqa: BLE001
+                last_error = f"{type(exc).__name__}: {exc}"
+        raise RuntimeError(f"Magpie request failed after {attempts} attempts: {last_error}")
 
 
 def model_catalog(base_url: str = BASE_URL, api_key: str = API_KEY) -> list[dict[str, Any]]:

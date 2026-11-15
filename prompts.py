@@ -201,6 +201,35 @@ def build_multimodal_parts(method: str, *, episode_id: str, question: str,
 _JSON_OBJECT = re.compile(r"\{.*?\}", re.S)
 
 
+def _unwrap_answer(text: str) -> str:
+    """Peel nested JSON off an answer string.
+
+    Some providers (Claude via Antigravity, for one) put the whole schema
+    object into the ``answer`` FIELD as a string, so the raw text looks like
+    ``{"answer": "{\\"answer\\": \\"Step 4\\", ...}"}``.  Unwrapping keeps such
+    answers gradable instead of silently counting them wrong.
+    """
+    current = str(text or "").strip()
+    for _ in range(3):
+        if not current.startswith("{"):
+            return current
+        try:
+            value = json.loads(current)
+        except json.JSONDecodeError:
+            return current
+        if isinstance(value, dict) and "answer" in value:
+            inner = value.get("answer")
+            if isinstance(inner, str) and inner.strip().startswith("{"):
+                current = inner.strip()
+                continue
+            return str(inner).strip()
+        if isinstance(value, str):
+            current = value.strip()
+            continue
+        return current
+    return current
+
+
 def parse_answer(text: str, options: list[str]) -> dict[str, Any]:
     """Parse the strict JSON answer, with a conservative last-resort fallback."""
     candidates = [text.strip()]
@@ -211,9 +240,15 @@ def parse_answer(text: str, options: list[str]) -> dict[str, Any]:
             value = json.loads(raw)
         except json.JSONDecodeError:
             continue
+        if isinstance(value, str):
+            # double-encoded: the whole object arrived as a JSON string
+            try:
+                value = json.loads(value)
+            except json.JSONDecodeError:
+                continue
         if not isinstance(value, dict) or "answer" not in value:
             continue
-        answer = str(value.get("answer", "")).strip()
+        answer = _unwrap_answer(value.get("answer"))
         if options:
             letter = _normalize_answer(answer, options)
             if letter is None:

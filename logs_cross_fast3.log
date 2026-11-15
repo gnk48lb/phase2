@@ -1,0 +1,8 @@
+mode=text models={'loomy/GLM-5.3-Flash': 50, 'loomy/qwen3.8-flash': 50, 'loomy/deepseek-v4-flash-1017': 50} 20 task bundle(s) / 450 request(s) to do; MiniMax credits left: 5414.58
+[1/450] loomy/qwen3.8-flash direct_baseline pb360: correct=False exact=False conf=0.55 50.379s credits~0.0/inf elapsed=50s
+[2/450] loomy/qwen3.8-flash append_only_ledger pb360: correct=False exact=False conf=0.75 67.948s credits~0.0/inf elapsed=118s
+[3/450] loomy/qwen3.8-flash versioned_state_ledger pb360: correct=False exact=False conf=0.72 46.945s credits~0.0/inf elapsed=165s
+[4/450] loomy/qwen3.8-flash direct_baseline pb279: correct=True exact=True conf=0.95 7.204s credits~0.0/inf elapsed=172s
+[5/450] loomy/qwen3.8-flash append_only_ledger pb279: correct=True exact=True conf=0.95 4.864s credits~0.0/inf elapsed=177s
+[6/450] loomy/qwen3.8-flash versioned_state_ledger pb279: correct=True exact=True conf=0.95 8.818s credits~0.0/inf elapsed=186s
+[7/450] loomy/qwen3.8-flash direct_baseline pb392: correct=False exact=False conf=0.65 220.494s credits~0.0/inf elapsed=220s

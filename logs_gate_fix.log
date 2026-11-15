@@ -1,0 +1,13 @@
+verifying 201 samples (1 extra perception + 1 re-answer each); MiniMax credits left: 9282.83
+  verified 20/201 (4099s)
+  verified 40/201 (4443s)
+  verified 60/201 (4651s)
+  verified 80/201 (4891s)
+  verified 100/201 (4958s)
+  verified 120/201 (5181s)
+  verified 140/201 (5317s)
+  verified 160/201 (5448s)
+  verified 180/201 (5621s)
+  verified 200/201 (6052s)
+  verified 201/201 (6078s)
+base accuracy 0.303; re-ask only 0.289; always-verify 0.294; 201 samples -> results\gate_simulation.json

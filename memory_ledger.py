@@ -37,6 +37,36 @@ def _entity_key(name: str) -> str:
     return _norm(name)
 
 
+# States that mean "the tracker could not see it in this frame".
+ABSENT_STATES = {"absent", "not visible", "not_visible", "out of view",
+                  "out_of_view", "unseen", "not in view"}
+
+
+def _is_absent_state(state: Any) -> bool:
+    return _norm(state) in ABSENT_STATES
+
+
+def is_trackable_entity(key: str) -> bool:
+    """True for real physical entities that can go stale.
+
+    Transient action phrases (``event:*``), the per-frame activity record and
+    purely printed labels are NOT trackable entities: an action phrase that
+    appears only in frame 0 looks maximally stale but re-verifying it in a
+    later frame always returns "not visible", which is exactly the failure
+    mode the staleness gate must avoid.
+    """
+    normalized = _norm(key)
+    if not normalized:
+        return False
+    if normalized.startswith("event:"):
+        return False
+    if normalized in ("activity", "current_activity"):
+        return False
+    if normalized.startswith("label:"):
+        return False
+    return True
+
+
 def _tokens(text: str) -> list[str]:
     return [tok for tok in re.findall(r"[a-z0-9_]+", _norm(text)) if tok not in _STOPWORDS]
 
@@ -186,10 +216,26 @@ class VersionedLedger:
             self.records[key] = record
             return
         old_state = {"state": current["state"], "location": current["location"]}
+        if (_is_absent_state(state) and not _is_absent_state(current["state"])):
+            # The entity left the view (camera moved), it did not change state.
+            # Keep the last known state and location, flag the visibility, and
+            # do NOT count it as a conflict: nothing was contradicted.
+            current["last_known_state"] = current["state"]
+            current["last_known_location"] = current["location"]
+            current["visibility"] = "out_of_view"
+            current["last_verified_frame"] = max(int(current["last_verified_frame"]), frame)
+            current["confidence"] = round(max(float(current.get("confidence") or 0), confidence), 3)
+            current["history"].append({
+                "frame": frame, "state": current["state"], "location": current["location"],
+                "status": "out_of_view", "confidence": round(confidence, 3),
+                "evidence": evidence,
+            })
+            return
         if old_state == new_state:
             # Re-observation confirms the active record: refresh its frame.
             current["last_verified_frame"] = max(int(current["last_verified_frame"]), frame)
             current["confidence"] = round(max(float(current.get("confidence") or 0), confidence), 3)
+            current["visibility"] = "in_view"
             current["history"].append({
                 "frame": frame, "state": state, "location": location,
                 "status": "confirmed", "confidence": round(confidence, 3),
@@ -295,6 +341,38 @@ class VersionedLedger:
             return sum(self.conflicts.values())
         return sum(self.conflicts.get(key, 0) for key in keys)
 
+    def observation_count(self, key: str) -> int:
+        """How many frames this entity was reported in."""
+        record = self.records.get(key)
+        if record is None:
+            return 0
+        return 1 + len(record.get("history", []))
+
+    def risk_keys(self, question: str) -> list[str]:
+        """Physical entities the staleness score and the gate may reason about.
+
+        Order of preference:
+        1. trackable entities whose name matches the question;
+        2. trackable entities that actually suffered a state conflict;
+        3. trackable entities seen in more than one frame;
+        4. every trackable entity.
+        Transient action phrases, the activity record and printed labels are
+        never eligible.
+        """
+        trackable = [key for key in self.records if is_trackable_entity(key)]
+        query_tokens = set(_tokens(question))
+        matched = [key for key in trackable
+                   if query_tokens & set(_tokens(self.records[key]["entity"]))]
+        if matched:
+            return sorted(matched)
+        conflicted = [key for key in trackable if self.conflicts.get(key, 0) > 0]
+        if conflicted:
+            return sorted(conflicted)
+        multi_frame = [key for key in trackable if self.observation_count(key) > 1]
+        if multi_frame:
+            return sorted(multi_frame)
+        return sorted(trackable)
+
     def superseded_count(self) -> int:
         return sum(1 for rec in self.records.values() if rec["status"] == "superseded")
 
@@ -330,8 +408,12 @@ def staleness_risk(ledger: VersionedLedger, question: str, current_frame: int,
 
     The score is deterministic; the model never computes it.
     """
-    keys = ledger.relevant_keys(question)
-    active = [ledger.records[key] for key in keys if ledger.records[key]["status"] == "active"]
+    keys = ledger.risk_keys(question)
+    active = [ledger.records[key] for key in keys
+              if ledger.records[key]["status"] == "active"]
+    if not active:
+        active = [rec for rec in ledger.active_records()
+                  if is_trackable_entity(rec.get("entity", ""))]
     if not active:
         active = ledger.active_records()
     horizon = max(1, int(current_frame) + 1)
@@ -371,7 +453,7 @@ def verification_frame(ledger: VersionedLedger, question: str, current_frame: in
     relevant record; otherwise the midpoint between the oldest relevant
     verification and the current frame.
     """
-    keys = ledger.relevant_keys(question)
+    keys = ledger.risk_keys(question)
     candidates = []
     for key in keys:
         if key not in ledger.records:
@@ -384,7 +466,7 @@ def verification_frame(ledger: VersionedLedger, question: str, current_frame: in
             candidates.append(int(rec["superseded_at_frame"]))
     if candidates:
         frame = max(candidates)
-        reason = "latest supersession touching a question-relevant record"
+        reason = "latest supersession touching a question-relevant physical entity"
     else:
         last = [int(rec["last_verified_frame"]) for key in keys
                 if key in ledger.records for rec in [ledger.records[key]]]
@@ -394,18 +476,99 @@ def verification_frame(ledger: VersionedLedger, question: str, current_frame: in
     return {"frame": frame, "reason": reason, "relevant_keys": keys}
 
 
+REVERIFY_NOTE = "[re-verified ground-truth frame observation]"
+
+
 def apply_verified_observation(ledger: VersionedLedger, observation: dict[str, Any]) -> VersionedLedger:
-    """Return a copy of the ledger with one re-verified frame ingested."""
+    """Return a copy of the ledger with one re-verified frame ingested.
+
+    The copy keeps the FULL history of the episode: the per-frame summaries of
+    every frame are carried over and only the verified frame's summary is
+    amended in place.  (Dropping them would hand the model a ledger with a
+    single frame of narration, which is not the state it answered from the
+    first time.)
+
+    The verified frame is an *intermediate* frame, so it must not overwrite
+    evidence that came later:
+
+    * entity last seen at or before the verified frame -> the verification is
+      the freshest evidence, so it becomes the active state (confidence 1.0);
+    * entity seen again after the verified frame -> the verification is older
+      evidence and goes into the history chain (counting a conflict only if it
+      contradicts what was believed at that frame).
+    """
     clone = VersionedLedger()
     clone.records = deepcopy(ledger.records)
     clone.conflicts = deepcopy(ledger.conflicts)
     clone.frame_log = list(ledger.frame_log)
+    clone.frame_summaries = deepcopy(ledger.frame_summaries)
+
+    f_ver = int(observation.get("frame", 0))
     verified = deepcopy(observation)
     verified["summary"] = (str(observation.get("summary") or "")
-                           + " [re-verified ground-truth frame observation]").strip()
+                           + " " + REVERIFY_NOTE).strip()
     verified["entities"] = [dict(ent, confidence=1.0)
                             for ent in (observation.get("entities") or [])]
     verified["absent"] = [dict(ent, confidence=1.0)
                           for ent in (observation.get("absent") or [])]
-    clone.ingest(verified)
+
+    # 1) amend the summary of the verified frame in place, keep the others
+    amended = False
+    for entry in clone.frame_summaries:
+        if int(entry.get("frame", -1)) == f_ver:
+            entry["summary"] = f"{entry.get('summary', '')} {REVERIFY_NOTE}".strip()
+            amended = True
+            break
+    if not amended:
+        clone.frame_summaries.append({"frame": f_ver, "summary": verified["summary"]})
+
+    # 2) the extra perception is one more observation
+    if f_ver not in clone.frame_log:
+        clone.frame_log.append(f_ver)
+
+    # 3) update the verified entities without clobbering later evidence
+    for ent in verified["entities"]:
+        name = ent.get("entity")
+        if not name:
+            continue
+        key = _entity_key(name)
+        record = clone.records.get(key)
+        state, location = ent.get("state"), ent.get("location")
+        evidence = verified["summary"]
+        if record is None:
+            clone._apply(name, state, location, f_ver, 1.0, evidence=evidence,
+                         reason="re-verified frame")
+            continue
+        if int(record.get("last_verified_frame", -1)) <= f_ver:
+            # No newer observation: the verification is the current truth.
+            previous = {"state": record["state"], "location": record["location"],
+                        "last_verified_frame": record["last_verified_frame"]}
+            record["history"].append({
+                "frame": f_ver, "last_verified_frame": previous["last_verified_frame"],
+                "superseded_at_frame": f_ver, "state": previous["state"],
+                "location": previous["location"], "status": "superseded",
+                "reason": "re-verified ground truth", "evidence": evidence,
+                "replaced_by": {"state": state, "location": location},
+            })
+            if previous["state"] != state or previous["location"] != location:
+                clone.conflicts[key] = clone.conflicts.get(key, 0) + 1
+            record["state"] = state
+            record["location"] = location
+            record["last_verified_frame"] = f_ver
+            record["confidence"] = 1.0
+            record["status"] = "active"
+            record["visibility"] = "in_view"
+        else:
+            # The entity was observed again after the verified frame: the
+            # verification is older evidence and belongs in the history chain.
+            believed = None
+            for hist in record.get("history", []):
+                if int(hist.get("frame", -1)) == f_ver:
+                    believed = hist.get("state")
+            if believed is not None and believed != state:
+                clone.conflicts[key] = clone.conflicts.get(key, 0) + 1
+            record["history"].append({
+                "frame": f_ver, "state": state, "location": location,
+                "status": "re-verified", "confidence": 1.0, "evidence": evidence,
+            })
     return clone
